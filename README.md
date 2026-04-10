@@ -147,3 +147,6 @@ vez que realice una mezcla de feature a develop.
 B. Genere el despliegue de su aplicación en Azure DevOps y agregue en el
 README el link del despliegue.
 
+### Genere el diagrama de componentes general del sistema ECIXPRESS
+
+![img.png](doc/imagen/img.png)
