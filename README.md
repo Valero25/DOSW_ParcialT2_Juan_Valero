@@ -120,6 +120,10 @@ Diseñe en Figma las pantallas necesarias para el flujo de:
 ● Creación del pedido
 
 
+
+## 3. Diferencia entre Autenticación, Autorización e Integridad
+
+Estos tres conceptos son fundamentales en seguridad, pero cumplen funciones diferentes:
 ---
 
 ## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
@@ -430,39 +434,58 @@ Las validaciones de input son aquellas que verifican el formato y estructura cor
 ```
 #### **Validaciones de Negocio**
 
-Las validaciones de negocio son aquellas que verifican el cumplimiento de las reglas y políticas del dominio específico de la aplicación. Se enfoca en la integridad semántica y la consistencia del estado del sistema.
+### **Autenticación: ¿Quién eres?**
 
-**Características:**
-- Se ejecutan después de validar el input
-- Acceden a la base de datos y lógica empresarial
-- Consideran el contexto, estado actual y políticas del sistema
-- Requieren conocimiento del dominio
-- Generan errores `422 Unprocessable Entity` o `409 Conflict`
+La autenticación verifica **quién eres tú**. Es como presentar tu documento de identidad. El sistema te pide credenciales (usuario y contraseña) para confirmar que eres quien dices ser.
 
-**Ejemplos en ECIXPRESS:**
+**En ECIXPRESS:**
+- Usuario ingresa: email y contraseña
+- Sistema verifica que la contraseña coincida
+- Si es correcto, te da un token JWT (tu "pase" de entrada)
+- No importa qué hagas, primero debes autenticarte
+
+
+
+### **Autorización: ¿Qué puedes hacer?**
+
+La autorización verifica **qué tienes permiso de hacer**. Es como tener un carnet que te permite entrar a ciertos lugares. Una vez autenticado, el sistema verifica si tu rol te permite realizar esa acción.
+
+**En ECIXPRESS:**
+- Cliente autenticado → Puede crear pedidos
+- Cliente autenticado → NO puede cambiar estado de pedidos (solo cafetería)
+- Cafetería autenticada → Puede cambiar estado
+- Cafetería autenticada → NO puede crear pedidos
+
+
+
+### **Integridad: ¿Fue modificado?**
+
+La integridad verifica que **los datos no hayan sido alterados**. Es asegurar que lo que envías sea exactamente lo mismo que recibe el servidor, sin cambios en el camino.
+
+**Métodos comunes:**
+- **Hash/Checksum**: Calcular un código único del mensaje. Si alguien lo modifica, el hash cambia
+- **Firma Digital**: Firmar el mensaje con clave privada para probbar que vraiste de quien dices
+- **HTTPS**: Cifra todo el tráfico para evitar que se modifique en tránsito
+
+**En ECIXPRESS:**
+- Todo se comunica por HTTPS (cifrado)
+- El JWT tiene firma digital (no se puede modificar sin que se note)
+- El servidor verifica el JWT: si fue modificado, es rechazado
+
 ```
-- El email no está registrado (validación de unicidad)
-- El usuario está activo (no suspendido)
-- El usuario NO tiene un pedido activo
-- El producto tiene stock disponible (cantidad > cantidadSolicitada)
-- Solo clientes pueden crear pedidos (no cafetería)
-- El pedido solo puede cancelarse en estado CREADO
-- La transición de estado es válida (CREADO → EN_PREPARACION → ENTREGADO)
-- El usuario propietario del pedido es quien solicita cancelarlo
-- El stock no se puede actualizar si el pedido está CANCELADO
+Cliente                           Servidor
+  │                                 │
+  ├─ Email + Contraseña (HTTPS)─→  │ Autenticación: ¿quién eres?
+  │                                 │
+  ├─ JWT Token ←─────────────────  │
+  │                                 │
+  ├─ Crear Pedido + JWT (HTTPS)─→  │ Integridad: ¿fue modificado el JWT?
+  │                                 │ Autorización: ¿tienes permiso?
+  │                                 │
+  └─ 201 Created ←───────────────  │
 ```
 
-
-#### **Comparativa: Input vs Negocio**
-
-**Validación de Input vs Validación de Negocio**
-
-Las validaciones de input se enfocan en la **sintaxis y formato** de los datos, estructurando la información que llega del cliente, mientras que las validaciones de negocio se centran en la **semántica y reglas** del dominio, garantizando la consistencia del sistema.
-
-En términos de **ubicación**, las validaciones de input se implementan a nivel de **Controlador/DTOs**, verificándose automáticamente sin acceso a la base de datos. Por el contrario, las validaciones de negocio residen en el **Servicio/Repositorio** y sí requieren acceso a la base de datos para consultar el estado actual del sistema.
-
-Las **herramientas** también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
-
+### **Resumen Práctico**
 **Ejemplos prácticos:**
 - **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
 - **Input**: Validar que la cantidad es un número > 0 vs **Negocio**: Validar que hay cantidad disponible en stock
@@ -470,15 +493,14 @@ Las **herramientas** también difieren: en validaciones de input se utilizan ano
 
 #### **Impacto en la Calidad**
 
-**Sin separación adecuada:**
-- Lógica de negocio contaminada con validaciones técnicas
-- Difícil de testear
-- Inconsistencia en errores
-- Datos corruptos en BD
+| Concepto | Pregunta | Ejemplo | Error |
+|----------|----------|---------|-------|
+| **Autenticación** | ¿Quién eres? | Usuario envía credenciales | 401 Unauthorized |
+| **Autorización** | ¿Qué permitido haces? | Verificar rol del usuario | 403 Forbidden |
+| **Integridad** | ¿Fue modificado? | Verificar firma del JWT | 401 Unauthorized (token inválido) |
 
-**Con separación clara:**
-- Responsabilidades bien definidas
-- Código más mantenible
-- Errores consistentes y documentados
-- Fácil de testear cada nivel
+**En orden de ejecución siempre es:**
+1. **Autenticación** → ¿Eres quién dices ser?
+2. **Integridad** → ¿Los datos no fueron modificados?
+3. **Autorización** → ¿Tienes permiso para esto?
 
