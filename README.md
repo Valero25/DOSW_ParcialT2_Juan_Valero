@@ -517,3 +517,38 @@ Utilidad: Una clase con métodos auxiliares que reutilizas en muchos lugares. No
 Servicio: Es donde va la lógica de negocio. Coordina todo: valida, accede a la base de datos, calcula, y ejecuta las reglas del negocio. Un servicio usa validadores y utilidades, pero es responsable de orquestar todo el flujo.
 
 En resumen: El validador verifica que los datos sean correctos. La utilidad hace cosas simples y reutilizables. El servicio es el director de orquesta que usa a ambos para hacer funcionar el negocio.
+8. Diagrama de Clases y Patrón para Estados del Pedido
+Modelos principales de ECIXPRESS:
+
+Los modelos que necesitamos son:
+
+Usuario: Con su id, nombre, email, contraseña y rol
+Producto: Con id, nombre, descripción, precio, código QR y stock
+Pedido: Con id, usuario, lista de productos, cantidades, estado y total
+ItemPedido: Representa cada producto dentro de un pedido
+La relación es: Un Usuario crea muchos Pedidos, y cada Pedido contiene muchos ItemPedidos.
+
+¿Qué patrón usar para los estados del pedido?
+
+El mejor patrón es State Pattern. ¿Por qué? Porque un pedido tiene 4 estados diferentes (CREADO, EN_PREPARACION, ENTREGADO, CANCELADO) y cada estado permite acciones distintas.
+
+En vez de hacer esto (lo malo):
+
+if (pedido.getEstado().equals("CREADO")) {
+    // permite cambiar a EN_PREPARACION
+} else if (pedido.getEstado().equals("EN_PREPARACION")) {
+    // permite cambiar a ENTREGADO
+} else if (pedido.getEstado().equals("ENTREGADO")) {
+    // no permite cambios
+}
+Usamos State Pattern (lo bueno):
+
+Cada estado es una clase que implementa sus propias reglas. El pedido solo delega al estado actual qué puede hacer.
+
+Ventajas de usar State Pattern:
+
+Cada estado tiene su propia lógica en su propia clase
+Fácil de agregar nuevos estados sin tocar el código existente
+No hay gigantescos if-else anidados
+Las reglas de negocio están claras y organizadas
+Fácil de testear cada estado por separado
