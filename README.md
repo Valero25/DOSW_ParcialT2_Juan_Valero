@@ -119,6 +119,246 @@ Diseñe en Figma las pantallas necesarias para el flujo de:
 ● Selección de productos y su detalle
 ● Creación del pedido
 
+---
+
+## Solucion
+
+### 2. Diferencia entre Validaciones de Input y Validaciones de Negocio
+
+#### **Validaciones de Input**
+
+Las validaciones de input son aquellas que verifican el formato y estructura correcta de los datos que envía el cliente. Se enfoca en la integridad sintáctica de los datos, sin considerar las reglas del dominio del negocio.
+
+**Características:**
+- Se ejecutan en el primer punto de entrada de la solicitud
+- Validan propiedades técnicas del dato: tipo, longitud, patrón, formato
+- No requieren acceso a la lógica de negocio o base de datos
+- Son independientes del contexto de negocio
+- Generan error `400 Bad Request`
+
+**Ejemplos en ECIXPRESS:**
+```
+- Email con formato válido (debe contener @)
+- Contraseña con mínimo 8 caracteres
+- Cantidad debe ser número positivo > 0
+- Código QR debe contener solo alfanuméricos
+- Precio debe ser decimal válido
+- UUID debe tener formato correcto (36 caracteres con guiones)
+```
+
+**Implementación (Ejemplo en Spring Boot):**
+```java
+@PostMapping("/usuarios")
+public ResponseEntity<?> registro(@Valid @RequestBody RegistroRequest request) {
+    // @Valid ejecuta las validaciones de input
+    // Si fallan, genera 400 Bad Request automáticamente
+}
+
+public class RegistroRequest {
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Size(min = 3, max = 100, message = "Nombre entre 3 y 100 caracteres")
+    private String nombre;
+    
+    @Email(message = "El email debe ser válido")
+    @Pattern(regexp = ".*@institucion\\.edu\\.co$", message = "Debe ser email institucional")
+    private String email;
+    
+    @NotBlank
+    @Size(min = 8, message = "La contraseña debe tener mínimo 8 caracteres")
+    private String password;
+}
+```
+
+---
+
+#### **Validaciones de Negocio**
+
+Las validaciones de negocio son aquellas que verifican el cumplimiento de las reglas y políticas del dominio específico de la aplicación. Se enfoca en la integridad semántica y la consistencia del estado del sistema.
+
+**Características:**
+- Se ejecutan después de validar el input
+- Acceden a la base de datos y lógica empresarial
+- Consideran el contexto, estado actual y políticas del sistema
+- Requieren conocimiento del dominio
+- Generan errores `422 Unprocessable Entity` o `409 Conflict`
+
+**Ejemplos en ECIXPRESS:**
+```
+- El email no está registrado (validación de unicidad)
+- El usuario está activo (no suspendido)
+- El usuario NO tiene un pedido activo
+- El producto tiene stock disponible (cantidad > cantidadSolicitada)
+- Solo clientes pueden crear pedidos (no cafetería)
+- El pedido solo puede cancelarse en estado CREADO
+- La transición de estado es válida (CREADO → EN_PREPARACION → ENTREGADO)
+- El usuario propietario del pedido es quien solicita cancelarlo
+- El stock no se puede actualizar si el pedido está CANCELADO
+```
+
+**Implementación (Ejemplo en Spring Boot):**
+```java
+@Service
+public class PedidoService {
+    
+    public PedidoResponse crearPedido(String usuarioId, CrearPedidoRequest request) {
+        // 1. Validación de input ya ocurrió en el controller
+        
+        // 2. Validaciones de negocio
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
+        
+        // Validación de negocio: Usuario activo
+        if (!usuario.isActivo()) {
+            throw new BusinessException("El usuario está suspendido");
+        }
+        
+        // Validación de negocio: Sin pedido activo
+        if (usuario.tienePedidoActivo()) {
+            throw new ConflictException("El usuario ya tiene un pedido activo");
+        }
+        
+        // Validación de negocio: Stock disponible
+        for (ItemPedidoRequest item : request.getItems()) {
+            Producto producto = productoRepository.findById(item.getProductoId())
+                .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
+            
+            if (producto.getStockDisponible() < item.getCantidad()) {
+                throw new UnprocessableEntityException(
+                    "Stock insuficiente para " + producto.getNombre()
+                );
+            }
+        }
+        
+        // Si todas las validaciones pasan, crear el pedido
+        return construirPedido(usuario, request);
+    }
+}
+```
+
+---
+
+#### **Comparativa: Input vs Negocio**
+
+**Validación de Input vs Validación de Negocio**
+
+Las validaciones de input se enfocan en la **sintaxis y formato** de los datos, estructurando la información que llega del cliente, mientras que las validaciones de negocio se centran en la **semántica y reglas** del dominio, garantizando la consistencia del sistema.
+
+En términos de **ubicación**, las validaciones de input se implementan a nivel de **Controlador/DTOs**, verificándose automáticamente sin acceso a la base de datos. Por el contrario, las validaciones de negocio residen en el **Servicio/Repositorio** y sí requieren acceso a la base de datos para consultar el estado actual del sistema.
+
+Las **herramientas** también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
+
+Desde el punto de vista de **códigos HTTP**, las validaciones de input generan **400 Bad Request** cuando los datos no cumplen con el formato requerido, mientras que las validaciones de negocio generan **422 Unprocessable Entity** o **409 Conflict** cuando se viola una regla del dominio.
+
+El **contexto** también es diferente: en validaciones de input, el cliente desconoce las reglas de negocio, solo valida estructura. En validaciones de negocio, se requiere conocimiento profundo del contexto empresarial (por ejemplo, si un usuario ya tiene un pedido activo).
+
+Respecto a la **velocidad**, las validaciones de input son muy rápidas ya que no acceden a la base de datos, mientras que las validaciones de negocio son más lentas porque requieren consultas a la BD.
+
+**Ejemplos prácticos:**
+- **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
+- **Input**: Validar que la cantidad es un número > 0 vs **Negocio**: Validar que hay cantidad disponible en stock
+
+---
+
+#### **Diagrama de Flujo de Validaciones**
+
+```
+SOLICITUD HTTP
+
+[VALIDACION INPUT]  Formato, tipo, tamaño
+    Falso: 400 Bad Request
+    Verdadero
+[VALIDACION DE NEGOCIO] Reglas del dominio, BD
+    Falso: 409/422 Error
+    Verdadero
+[PROCESAR SOLICITUD] Crear/actualizar recursos
+    201/200 OK
+```
+
+---
+
+#### **Implementación de Ejemplo en ECIXPRESS**
+
+**Endpoint: Crear Pedido**
+
+```java
+@RestController
+@RequestMapping("/api/pedidos")
+public class PedidoController {
+    
+    @PostMapping
+    public ResponseEntity<PedidoResponse> crearPedido(
+        @Valid @RequestBody CrearPedidoRequest request,
+        @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        // Validación Input: @Valid verifica formato de request
+        // Si falla → 400 Bad Request
+        
+        // Validación Negocio: Servicio verifica reglas
+        try {
+            PedidoResponse response = pedidoService.crearPedido(
+                userDetails.getUsername(), 
+                request
+            );
+            return ResponseEntity.status(201).body(response);
+        } catch (BusinessException e) {
+            // Error de negocio específico
+            return ResponseEntity.status(422).body(
+                ErrorResponse.builder()
+                    .codigo(422)
+                    .mensaje(e.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build()
+            );
+        }
+    }
+}
+```
+
+**Request DTO con Validaciones de Input:**
+```java
+@Data
+public class CrearPedidoRequest {
+    
+    @NotNull(message = "Items no puede ser nulo")
+    @NotEmpty(message = "Debe incluir al menos un producto")
+    private List<ItemPedidoRequest> items;
+    
+    @Size(max = 500, message = "Notas máximo 500 caracteres")
+    private String notas;
+}
+
+@Data
+public class ItemPedidoRequest {
+    
+    @NotBlank(message = "ID producto requerido")
+    @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+    private String productoId;
+    
+    @NotNull(message = "Cantidad requerida")
+    @Min(value = 1, message = "Cantidad mínima es 1")
+    @Max(value = 100, message = "Cantidad máxima es 100 por solicitud")
+    private Integer cantidad;
+}
+```
+
+---
+
+#### **Impacto en la Calidad**
+
+**Sin separación adecuada:**
+- Lógica de negocio contaminada con validaciones técnicas
+- Difícil de testear
+- Inconsistencia en errores
+- Datos corruptos en BD
+
+**Con separación clara:**
+- Responsabilidades bien definidas
+- Código más mantenible
+- Errores consistentes y documentados
+- Fácil de testear cada nivel
+
+---
+
 ## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
 Por cada funcionalidad que van a realizar generen una rama feature y
 una vez esté completa mezcle sobre develop y borre su rama - si no está
