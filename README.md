@@ -147,3 +147,8 @@ vez que realice una mezcla de feature a develop.
 B. Genere el despliegue de su aplicación en Azure DevOps y agregue en el
 README el link del despliegue.
 
+
+## link 
+https://lucid.app/lucidchart/92537d47-17f0-4737-a520-0beec411ef2d/edit?viewport_loc=32%2C-11%2C2175%2C1087%2C0_0&invitationId=inv_da828d70-12bc-4856-b067-38046bd21117
+
+
