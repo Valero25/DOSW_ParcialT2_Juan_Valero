@@ -1,7 +1,7 @@
 # ECIXPRESS - Gestión de Pedidos en Cafeterías
 
 ## Información del Proyecto
-- **Autor:** Juan Valero
+- **Autor:** Juan David Valero y Carlos Andres Uribe Vargas
 - **Grupo:** [1]
 - **Versión de Java:** 21
 - **Framework:** Spring Boot 3.1.5
