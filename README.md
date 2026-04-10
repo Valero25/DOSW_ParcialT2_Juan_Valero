@@ -250,15 +250,8 @@
 
 ## Matriz de Acceso por Rol
 
-| Funcionalidad | CLIENTE | CAFETERIA | ADMIN | PÚBLICO |
-|---|---|---|---|---|
-| Registro | - | - | - | ✅ |
-| Login | ✅ | ✅ | ✅ | ✅ |
-| Consultar QR | ✅ | ✅ | - | - |
-| Crear Pedido | ✅ | - | - | - |
-| Cambiar Estado | - | ✅ | ✅ | - |
-| Cancelar Pedido | ✅ | - | ✅ | - |
-| Confirmar Pedido | ✅ | - | - | - |
+## Matriz de Acceso por Rol
+![Punto 1 - Matriz de Acceso por Rol](docs/images/Punto_1.2.png)
 
 
 ### Ejecutar el Proyecto
