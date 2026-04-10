@@ -1,4 +1,4 @@
-# DOSW_ParcialT2_Juan_Valero_Carlos_Uribe
+# ECIXPRESS - Gestión de Pedidos en Cafeterías
 
 ## Información del Proyecto
 - **Autor:** Juan David Valero y Carlos Andres Uribe Vargas
@@ -124,6 +124,315 @@ Diseñe en Figma las pantallas necesarias para el flujo de:
 ## 3. Diferencia entre Autenticación, Autorización e Integridad
 
 Estos tres conceptos son fundamentales en seguridad, pero cumplen funciones diferentes:
+---
+
+## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
+Por cada funcionalidad que van a realizar generen una rama feature y
+una vez esté completa mezcle sobre develop y borre su rama - si no está
+sobre develop no se calificara el entregable práctico.
+1. Implemente a nivel de código las funcionalidades relacionadas con el flujo
+de Registro de usuarios y Creación del pedido, Recuerde que tiene que
+estar alineado con:
+a. Las definiciones que menciono de Request y Response (Códigos de
+error)
+b. Validaciones de input y negocio.
+c. Componentes diagramados en los diagramas de componentes
+específicos, de clases y entidad-relación.
+2. Implemente la documentación Swagger de su API
+3. Genere las pruebas unitarias correspondientes para las funcionalidades
+presentadas - Agregue a su README el análisis de cobertura con jacoco y
+el análisis estático.
+4. Realice pruebas funcionales de su API mostrando que está utilizando
+swagger o postman junto a los logs que generó en la aplicación por cada
+operación probada y sus escenarios.
+5. Implementa Seguridad para el tema de autenticación y manejo de
+permisos por roles para las operaciones que desarrollaste.
+BONO:
+A. Genere con Github Actions un pipeline que permite automatizar el ciclo de
+su aplicación: build, test and deploy, este pipeline se debe ejecutar cada
+vez que realice una mezcla de feature a develop.
+B. Genere el despliegue de su aplicación en Azure DevOps y agregue en el
+README el link del despliegue.
+- **Descripción:** MVP de aplicación web para gestión de pedidos en cafeterías institucionales mediante códigos QR
+
+---
+
+## Especificación de Funcionalidades
+
+### Funcionalidades Identificadas - Análisis de Requisitos REST API
+
+![Punto 1 - Análisis de Funcionalidades](docs/images/Punto_1.png)
+
+---
+
+## Ejemplos JSON 
+
+### 1. Registro de Usuario
+
+**Entrada (POST /auth/registro):**
+```json
+{
+  "nombre": "Juan García López",
+  "email": "juan.garcia@institucion.edu.co",
+  "password": "Segura2024!",
+  "rol": "CLIENTE"
+}
+```
+
+**Salida 201 Created:**
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "nombre": "Juan García López",
+  "email": "juan.garcia@institucion.edu.co",
+  "rol": "CLIENTE",
+  "fechaRegistro": "2026-04-10T14:30:00Z",
+  "estado": "ACTIVO"
+}
+```
+
+**Error 409 Conflict:**
+```json
+{
+  "error": "Conflict",
+  "mensaje": "El email juan.garcia@institucion.edu.co ya está registrado",
+  "timestamp": "2026-04-10T14:30:00Z"
+}
+```
+
+---
+
+### 2. Autenticación (Login)
+
+**Entrada (POST /auth/login):**
+```json
+{
+  "email": "juan.garcia@institucion.edu.co",
+  "password": "Segura2024!"
+}
+```
+
+**Salida 200 OK:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJpYXQiOjE3MTI3NTAwMDAsImV4cCI6MTcxMjgzNjQwMH0.signature",
+  "tipo": "Bearer",
+  "usuario": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "nombre": "Juan García López",
+    "email": "juan.garcia@institucion.edu.co",
+    "rol": "CLIENTE"
+  },
+  "expiresIn": 86400
+}
+```
+
+---
+
+### 3. Consultar Producto por QR
+
+**Entrada (GET /productos/qr?codigoQR=PROD123456789):**
+```json
+{
+  "codigoQR": "PROD123456789"
+}
+```
+
+**Salida 200 OK:**
+```json
+{
+  "id": "660e8400-e29b-41d4-a716-446655440001",
+  "nombre": "Café Cappuccino",
+  "descripcion": "Bebida caliente preparada con espresso y leche vaporizada",
+  "precio": 4500.00,
+  "codigoQR": "PROD123456789",
+  "stockDisponible": 45,
+  "estado": "DISPONIBLE"
+}
+```
+
+---
+
+### 4. Crear Pedido
+
+**Entrada (POST /pedidos):**
+```json
+{
+  "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
+  "items": [
+    {
+      "productoId": "660e8400-e29b-41d4-a716-446655440001",
+      "cantidad": 2
+    },
+    {
+      "productoId": "770e8400-e29b-41d4-a716-446655440002",
+      "cantidad": 1
+    }
+  ],
+  "notas": "Café sin azúcar"
+}
+```
+
+**Salida 201 Created:**
+```json
+{
+  "id": "880e8400-e29b-41d4-a716-446655440000",
+  "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
+  "estado": "CREADO",
+  "items": [
+    {
+      "productoId": "660e8400-e29b-41d4-a716-446655440001",
+      "nombre": "Café Cappuccino",
+      "cantidad": 2,
+      "precioUnitario": 4500.00,
+      "subtotal": 9000.00
+    },
+    {
+      "productoId": "770e8400-e29b-41d4-a716-446655440002",
+      "nombre": "Croissant",
+      "cantidad": 1,
+      "precioUnitario": 3500.00,
+      "subtotal": 3500.00
+    }
+  ],
+  "total": 12500.00,
+  "notas": "Café sin azúcar",
+  "fechaCreacion": "2026-04-10T15:00:00Z"
+}
+```
+
+---
+
+### 5. Cambiar Estado Pedido
+
+**Entrada (PATCH /pedidos/880e8400-e29b-41d4-a716-446655440000/estado):**
+```json
+{
+  "pedidoId": "880e8400-e29b-41d4-a716-446655440000",
+  "nuevoEstado": "EN_PREPARACION",
+  "notas": "Preparando el pedido"
+}
+```
+
+**Salida 200 OK:**
+```json
+{
+  "id": "880e8400-e29b-41d4-a716-446655440000",
+  "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
+  "estado": "EN_PREPARACION",
+  "estadoAnterior": "CREADO",
+  "items": [...],
+  "total": 12500.00,
+  "notas": "Preparando el pedido",
+  "fechaUltimaActualizacion": "2026-04-10T15:05:00Z",
+  "actualizadoPor": "cafeteria@institucion.edu.co"
+}
+```
+
+---
+
+### 6. Cancelar Pedido
+
+**Entrada (PATCH /pedidos/880e8400-e29b-41d4-a716-446655440000/cancelar):**
+```json
+{
+  "pedidoId": "880e8400-e29b-41d4-a716-446655440000",
+  "razon": "El cliente cambió de opinión"
+}
+```
+
+**Salida 200 OK:**
+```json
+{
+  "id": "880e8400-e29b-41d4-a716-446655440000",
+  "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
+  "estado": "CANCELADO",
+  "estadoAnterior": "CREADO",
+  "total": 12500.00,
+  "razon": "El cliente cambió de opinión",
+  "stockRecuperado": 3,
+  "fechaCancelacion": "2026-04-10T16:00:00Z"
+}
+```
+
+---
+
+### 7. Confirmar Pedido (Actualizar Stock)
+
+**Entrada (PATCH /pedidos/880e8400-e29b-41d4-a716-446655440000/confirmar):**
+```json
+{
+  "pedidoId": "880e8400-e29b-41d4-a716-446655440000",
+  "metodoPago": "TARJETA"
+}
+```
+
+**Salida 200 OK:**
+```json
+{
+  "id": "880e8400-e29b-41d4-a716-446655440000",
+  "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
+  "estado": "EN_PREPARACION",
+  "metodoPago": "TARJETA",
+  "stockActualizado": [
+    {
+      "productoId": "660e8400-e29b-41d4-a716-446655440001",
+      "nombre": "Café Cappuccino",
+      "cantidadAnterior": 45,
+      "cantidadNueva": 43
+    },
+    {
+      "productoId": "770e8400-e29b-41d4-a716-446655440002",
+      "nombre": "Croissant",
+      "cantidadAnterior": 30,
+      "cantidadNueva": 29
+    }
+  ],
+  "total": 12500.00,
+  "fechaConfirmacion": "2026-04-10T15:10:00Z"
+}
+```
+
+---
+
+## Matriz de Acceso por Rol
+
+## Matriz de Acceso por Rol
+![Punto 1 - Matriz de Acceso por Rol](docs/images/Punto_1.2.png)
+
+
+### Ejecutar el Proyecto
+```bash
+mvn clean install
+mvn spring-boot:run
+```
+---
+
+## Solucion
+
+### 2. Diferencia entre Validaciones de Input y Validaciones de Negocio
+
+#### **Validaciones de Input**
+
+Las validaciones de input son aquellas que verifican el formato y estructura correcta de los datos que envía el cliente. Se enfoca en la integridad sintáctica de los datos, sin considerar las reglas del dominio del negocio.
+
+**Características:**
+- Se ejecutan en el primer punto de entrada de la solicitud
+- Validan propiedades técnicas del dato: tipo, longitud, patrón, formato
+- No requieren acceso a la lógica de negocio o base de datos
+- Son independientes del contexto de negocio
+- Generan error `400 Bad Request`
+
+**Ejemplos en ECIXPRESS:**
+```
+- Email con formato válido (debe contener @)
+- Contraseña con mínimo 8 caracteres
+- Cantidad debe ser número positivo > 0
+- Código QR debe contener solo alfanuméricos
+- Precio debe ser decimal válido
+- UUID debe tener formato correcto (36 caracteres con guiones)
+```
+#### **Validaciones de Negocio**
 
 ### **Autenticación: ¿Quién eres?**
 
@@ -177,6 +486,12 @@ Cliente                           Servidor
 ```
 
 ### **Resumen Práctico**
+**Ejemplos prácticos:**
+- **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
+- **Input**: Validar que la cantidad es un número > 0 vs **Negocio**: Validar que hay cantidad disponible en stock
+
+
+#### **Impacto en la Calidad**
 
 | Concepto | Pregunta | Ejemplo | Error |
 |----------|----------|---------|-------|
@@ -188,34 +503,4 @@ Cliente                           Servidor
 1. **Autenticación** → ¿Eres quién dices ser?
 2. **Integridad** → ¿Los datos no fueron modificados?
 3. **Autorización** → ¿Tienes permiso para esto?
-
----
-
-## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
-Por cada funcionalidad que van a realizar generen una rama feature y
-una vez esté completa mezcle sobre develop y borre su rama - si no está
-sobre develop no se calificara el entregable práctico.
-1. Implemente a nivel de código las funcionalidades relacionadas con el flujo
-de Registro de usuarios y Creación del pedido, Recuerde que tiene que
-estar alineado con:
-a. Las definiciones que menciono de Request y Response (Códigos de
-error)
-b. Validaciones de input y negocio.
-c. Componentes diagramados en los diagramas de componentes
-específicos, de clases y entidad-relación.
-2. Implemente la documentación Swagger de su API
-3. Genere las pruebas unitarias correspondientes para las funcionalidades
-presentadas - Agregue a su README el análisis de cobertura con jacoco y
-el análisis estático.
-4. Realice pruebas funcionales de su API mostrando que está utilizando
-swagger o postman junto a los logs que generó en la aplicación por cada
-operación probada y sus escenarios.
-5. Implementa Seguridad para el tema de autenticación y manejo de
-permisos por roles para las operaciones que desarrollaste.
-BONO:
-A. Genere con Github Actions un pipeline que permite automatizar el ciclo de
-su aplicación: build, test and deploy, este pipeline se debe ejecutar cada
-vez que realice una mezcla de feature a develop.
-B. Genere el despliegue de su aplicación en Azure DevOps y agregue en el
-README el link del despliegue.
 
