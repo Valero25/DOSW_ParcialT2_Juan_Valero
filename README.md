@@ -508,3 +508,12 @@ Cliente                           Servidor
 ### Genere el diagrama de componentes general del sistema ECIXPRESS
 
 ![img.png](doc/imagen/img.png)
+
+7. Diferencias entre Validador, Utilidad y Servicio
+Validador: Es una clase especializada en verificar datos. Su único trabajo es responder "esto es válido o no". Por ejemplo, validar que un email tiene formato correcto, o que una cantidad es positiva. Recibe datos y retorna true o false, o lanza una excepción.
+
+Utilidad: Una clase con métodos auxiliares que reutilizas en muchos lugares. No accede a base de datos, solo hace cálculos o transformaciones simples. Por ejemplo, formatear fechas, calcular totales, convertir textos. Es más como una caja de herramientas.
+
+Servicio: Es donde va la lógica de negocio. Coordina todo: valida, accede a la base de datos, calcula, y ejecuta las reglas del negocio. Un servicio usa validadores y utilidades, pero es responsable de orquestar todo el flujo.
+
+En resumen: El validador verifica que los datos sean correctos. La utilidad hace cosas simples y reutilizables. El servicio es el director de orquesta que usa a ambos para hacer funcionar el negocio.
