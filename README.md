@@ -552,3 +552,23 @@ Fácil de agregar nuevos estados sin tocar el código existente
 No hay gigantescos if-else anidados
 Las reglas de negocio están claras y organizadas
 Fácil de testear cada estado por separado
+10. Dos Índices para Mejorar el Rendimiento de ECIXPRESS
+Índice 1: En la tabla Pedido por usuario y estado
+
+CREATE INDEX idx_pedido_usuario_estado ON pedido(usuario_id, estado);
+¿Por qué funciona? Cuando buscas "dame todos los pedidos de un usuario" o "dame los pedidos en estado CREADO de este usuario", la base de datos busca en este índice en lugar de recorrer todas las filas de la tabla. Es como buscar por apellido en una guía telefónica ordenada: mucho más rápido que leer página por página.
+
+En ECIXPRESS necesitamos esto constantemente: ver los pedidos de un usuario, verificar si tiene pedido activo, cambiar estado de pedidos específicos. Sin el índice, la base de datos debe leer toda la tabla.
+
+Índice 2: En la tabla Producto por código QR
+
+CREATE INDEX idx_producto_codigo_qr ON producto(codigo_qr);
+¿Por qué funciona? Cada vez que un cliente escanea un código QR para buscar un producto, la base de datos necesita encontrar ese producto específico. Sin índice, busca en todas las filas. Con índice, lo encuentra directamente.
+
+Esto es crítico en ECIXPRESS porque los clientes están escaneando constantemente QR mientras hacen compras. Si cada escaneo requiere leer toda la tabla, el sistema se vuelve lento. Con el índice, es instantáneo.
+
+Criterio técnico por el que generan valor:
+
+Ambos índices reducen el tiempo de búsqueda de O(n) a O(log n), donde n es el número de filas. Si tienes 100,000 pedidos, sin índice necesitas leer hasta 100,000 filas. Con índice, solo lees aproximadamente 17 filas. Eso es una diferencia enormemente en velocidad.
+
+Además, estos índices alinean con los patrones de uso real de ECIXPRESS: búsquedas frecuentes por usuario/estado en pedidos e búsquedas por código QR en productos.
