@@ -505,3 +505,6 @@ Cliente                           Servidor
 2. **Integridad** → ¿Los datos no fueron modificados?
 3. **Autorización** → ¿Tienes permiso para esto?
 
+### Genere el diagrama de componentes general del sistema ECIXPRESS
+
+![img.png](doc/imagen/img.png)
