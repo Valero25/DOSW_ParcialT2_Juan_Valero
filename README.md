@@ -241,17 +241,17 @@ public class PedidoService {
 
 **Validación de Input vs Validación de Negocio**
 
-Las validaciones de input se enfocan en la **sintaxis y formato** de los datos, estructurando la información que llega del cliente, mientras que las validaciones de negocio se centran en la **semántica y reglas** del dominio, garantizando la consistencia del sistema.
+Las validaciones de input se enfocan en la sintaxis y formato de los datos, estructurando la información que llega del cliente, mientras que las validaciones de negocio se centran en la semántica y reglas del dominio, garantizando la consistencia del sistema.
 
-En términos de **ubicación**, las validaciones de input se implementan a nivel de **Controlador/DTOs**, verificándose automáticamente sin acceso a la base de datos. Por el contrario, las validaciones de negocio residen en el **Servicio/Repositorio** y sí requieren acceso a la base de datos para consultar el estado actual del sistema.
+En términos de ubicación, las validaciones de input se implementan a nivel de Controlador/DTOs, verificándose automáticamente sin acceso a la base de datos. Por el contrario, las validaciones de negocio residen en el Servicio/Repositorio y sí requieren acceso a la base de datos para consultar el estado actual del sistema.
 
-Las **herramientas** también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
+Las herramientas también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
 
-Desde el punto de vista de **códigos HTTP**, las validaciones de input generan **400 Bad Request** cuando los datos no cumplen con el formato requerido, mientras que las validaciones de negocio generan **422 Unprocessable Entity** o **409 Conflict** cuando se viola una regla del dominio.
+Desde el punto de vista de códigos HTTP, las validaciones de input generan 400 Bad Request cuando los datos no cumplen con el formato requerido, mientras que las validaciones de negocio generan 422 Unprocessable Entity o 409 Conflict cuando se viola una regla del dominio.
 
-El **contexto** también es diferente: en validaciones de input, el cliente desconoce las reglas de negocio, solo valida estructura. En validaciones de negocio, se requiere conocimiento profundo del contexto empresarial (por ejemplo, si un usuario ya tiene un pedido activo).
+El contexto también es diferente: en validaciones de input, el cliente desconoce las reglas de negocio, solo valida estructura. En validaciones de negocio, se requiere conocimiento profundo del contexto empresarial (por ejemplo, si un usuario ya tiene un pedido activo).
 
-Respecto a la **velocidad**, las validaciones de input son muy rápidas ya que no acceden a la base de datos, mientras que las validaciones de negocio son más lentas porque requieren consultas a la BD.
+Respecto a la velocidad, las validaciones de input son muy rápidas ya que no acceden a la base de datos, mientras que las validaciones de negocio son más lentas porque requieren consultas a la BD.
 
 **Ejemplos prácticos:**
 - **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
@@ -356,6 +356,96 @@ public class ItemPedidoRequest {
 - Código más mantenible
 - Errores consistentes y documentados
 - Fácil de testear cada nivel
+
+---
+
+## 3. Diferencia entre Autenticación, Autorización e Integridad
+
+Estos tres conceptos son fundamentales en seguridad, pero cumplen funciones diferentes:
+
+### **Autenticación: ¿Quién eres?**
+
+La autenticación verifica **quién eres tú**. Es como presentar tu documento de identidad. El sistema te pide credenciales (usuario y contraseña) para confirmar que eres quien dices ser.
+
+**En ECIXPRESS:**
+- Usuario ingresa: email y contraseña
+- Sistema verifica que la contraseña coincida
+- Si es correcto, te da un token JWT (tu "pase" de entrada)
+- No importa qué hagas, primero debes autenticarte
+
+```java
+@PostMapping("/auth/login")
+public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    Usuario usuario = verificarCredenciales(request.getEmail(), request.getPassword());
+    // Si pasa esta verificación, la autenticación es exitosa
+    return ResponseEntity.ok(generarToken(usuario));
+}
+```
+
+### **Autorización: ¿Qué puedes hacer?**
+
+La autorización verifica **qué tienes permiso de hacer**. Es como tener un carnet que te permite entrar a ciertos lugares. Una vez autenticado, el sistema verifica si tu rol te permite realizar esa acción.
+
+**En ECIXPRESS:**
+- ✅ Cliente autenticado → Puede crear pedidos
+- ❌ Cliente autenticado → NO puede cambiar estado de pedidos (solo cafetería)
+- ✅ Cafetería autenticada → Puede cambiar estado
+- ❌ Cafetería autenticada → NO puede crear pedidos
+
+```java
+@PostMapping("/pedidos") 
+@PreAuthorize("hasRole('CLIENTE')")  // Solo clientes autorizados
+public ResponseEntity<PedidoResponse> crearPedido(@RequestBody CrearPedidoRequest request) {
+    // Si no eres cliente, obtienes 403 Forbidden
+    return pedidoService.crear(request);
+}
+
+@PatchMapping("/pedidos/{id}/estado")
+@PreAuthorize("hasRole('CAFETERIA') or hasRole('ADMIN')")  // Solo personal de cafetería
+public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable String id, @RequestBody CambiarEstadoRequest request) {
+    return pedidoService.cambiarEstado(id, request);
+}
+```
+
+### **Integridad: ¿Fue modificado?**
+
+La integridad verifica que **los datos no hayan sido alterados**. Es asegurar que lo que envías sea exactamente lo mismo que recibe el servidor, sin cambios en el camino.
+
+**Métodos comunes:**
+- **Hash/Checksum**: Calcular un código único del mensaje. Si alguien lo modifica, el hash cambia
+- **Firma Digital**: Firmar el mensaje con clave privada para probbar que vraiste de quien dices
+- **HTTPS**: Cifra todo el tráfico para evitar que se modifique en tránsito
+
+**En ECIXPRESS:**
+- Todo se comunica por HTTPS (cifrado)
+- El JWT tiene firma digital (no se puede modificar sin que se note)
+- El servidor verifica el JWT: si fue modificado, es rechazado
+
+```
+Cliente                           Servidor
+  │                                 │
+  ├─ Email + Contraseña (HTTPS)─→  │ Autenticación: ¿quién eres?
+  │                                 │
+  ├─ JWT Token ←─────────────────  │
+  │                                 │
+  ├─ Crear Pedido + JWT (HTTPS)─→  │ Integridad: ¿fue modificado el JWT?
+  │                                 │ Autorización: ¿tienes permiso?
+  │                                 │
+  └─ 201 Created ←───────────────  │
+```
+
+### **Resumen Práctico**
+
+| Concepto | Pregunta | Ejemplo | Error |
+|----------|----------|---------|-------|
+| **Autenticación** | ¿Quién eres? | Usuario envía credenciales | 401 Unauthorized |
+| **Autorización** | ¿Qué permitido haces? | Verificar rol del usuario | 403 Forbidden |
+| **Integridad** | ¿Fue modificado? | Verificar firma del JWT | 401 Unauthorized (token inválido) |
+
+**En orden de ejecución siempre es:**
+1. **Autenticación** → ¿Eres quién dices ser?
+2. **Integridad** → ¿Los datos no fueron modificados?
+3. **Autorización** → ¿Tienes permiso para esto?
 
 ---
 
