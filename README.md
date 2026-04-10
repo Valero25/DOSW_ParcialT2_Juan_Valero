@@ -499,7 +499,7 @@ public class PedidoService {
 }
 ```
 
-**En resumen:** El validador verifica que los datos sean correctos. La utilidad hace cosas simples y reutilizables. El servicio es el director de orquesta que usa a ambos para hacer funcionar el negocio.
+
 
 ---
 
@@ -517,64 +517,44 @@ La relación es: Un Usuario crea muchos Pedidos, y cada Pedido contiene muchos I
 
 **¿Qué patrón usar para los estados del pedido?**
 
-El mejor patrón es **State Pattern**. ¿Por qué? Porque un pedido tiene 4 estados diferentes (CREADO, EN_PREPARACION, ENTREGADO, CANCELADO) y cada estado permite acciones distintas.
+El mejor patrón es State Pattern. Porque un pedido tiene 4 estados diferentes (CREADO, EN_PREPARACION, ENTREGADO, CANCELADO) y cada estado permite acciones distintas.
 
-**En vez de hacer esto (lo malo):**
-```java
-if (pedido.getEstado().equals("CREADO")) {
-    // permite cambiar a EN_PREPARACION
-} else if (pedido.getEstado().equals("EN_PREPARACION")) {
-    // permite cambiar a ENTREGADO
-} else if (pedido.getEstado().equals("ENTREGADO")) {
-    // no permite cambios
-}
-```
-
-**Usamos State Pattern (lo bueno):**
-
-Cada estado es una clase que implementa sus propias reglas. El pedido solo delega al estado actual qué puede hacer.
-
-```java
-public interface EstadoPedido {
-    void cambiarAEnPreparacion(Pedido pedido);
-    void cambiarAEntregado(Pedido pedido);
-    void cancelar(Pedido pedido);
-}
-
-public class EstadoCreado implements EstadoPedido {
-    @Override
-    public void cambiarAEnPreparacion(Pedido pedido) {
-        pedido.setEstado(new EstadoEnPreparacion());
-    }
-    
-    @Override
-    public void cancelar(Pedido pedido) {
-        pedido.setEstado(new EstadoCancelado());
-    }
-}
-
-public class EstadoEnPreparacion implements EstadoPedido {
-    @Override
-    public void cambiarAEntregado(Pedido pedido) {
-        pedido.setEstado(new EstadoEntregado());
-    }
-}
-
-public class Pedido {
-    private EstadoPedido estado = new EstadoCreado();
-    
-    public void cambiarEstado() {
-        estado.cambiarAEnPreparacion(this);
-    }
-}
-```
-
-**Ventajas de usar State Pattern:**
+**Ventajas**
 - Cada estado tiene su propia lógica en su propia clase
 - Fácil de agregar nuevos estados sin tocar el código existente
 - No hay gigantescos if-else anidados
 - Las reglas de negocio están claras y organizadas
 - Fácil de testear cada estado por separado
+
+---
+
+## 10. Dos Índices para Mejorar el Rendimiento de ECIXPRESS
+
+**Índice 1: En la tabla Pedido por usuario y estado**
+
+```sql
+CREATE INDEX idx_pedido_usuario_estado ON pedido(usuario_id, estado);
+```
+
+¿Por qué funciona? Cuando buscas "dame todos los pedidos de un usuario" o "dame los pedidos en estado CREADO de este usuario", la base de datos busca en este índice en lugar de recorrer todas las filas de la tabla. Es como buscar por apellido en una guía telefónica ordenada: mucho más rápido que leer página por página.
+
+En ECIXPRESS necesitamos esto constantemente: ver los pedidos de un usuario, verificar si tiene pedido activo, cambiar estado de pedidos específicos. Sin el índice, la base de datos debe leer toda la tabla.
+
+**Índice 2: En la tabla Producto por código QR**
+
+```sql
+CREATE INDEX idx_producto_codigo_qr ON producto(codigo_qr);
+```
+
+¿Por qué funciona? Cada vez que un cliente escanea un código QR para buscar un producto, la base de datos necesita encontrar ese producto específico. Sin índice, busca en todas las filas. Con índice, lo encuentra directamente.
+
+Esto es crítico en ECIXPRESS porque los clientes están escaneando constantemente QR mientras hacen compras. Si cada escaneo requiere leer toda la tabla, el sistema se vuelve lento. Con el índice, es instantáneo.
+
+**Criterio técnico por el que generan valor:**
+
+Ambos índices reducen el tiempo de búsqueda de O(n) a O(log n), donde n es el número de filas. Si tienes 100,000 pedidos, sin índice necesitas leer hasta 100,000 filas. Con índice, solo lees aproximadamente 17 filas. Eso es una diferencia enormemente en velocidad.
+
+Además, estos índices alinean con los patrones de uso real de ECIXPRESS: búsquedas frecuentes por usuario/estado en pedidos e búsquedas por código QR en productos.
 
 ---
 
