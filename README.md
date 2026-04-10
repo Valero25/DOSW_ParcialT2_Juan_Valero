@@ -1,4 +1,4 @@
-# DOSW_ParcialT2_Juan_Valero
+# DOSW_ParcialT2_Juan_Valero_Carlos_Uribe
 
 ## Información del Proyecto
 - **Autor:** Juan David Valero y Carlos Andres Uribe Vargas
@@ -6,7 +6,7 @@
 - **Versión de Java:** 21
 - **Framework:** Spring Boot 3.1.5
 - **Base de Datos:** MySQL 8.0
-Caso de Estudio
+## Caso de Estudio
 La empresa DOSW ha sido seleccionada para desarrollar el MVP de la nueva
 aplicación que saldrá al mercado estudiantil ECIXPRESS, una aplicación web
 orientada a la gestión de pedidos en cafeterías institucionales mediante el uso de
