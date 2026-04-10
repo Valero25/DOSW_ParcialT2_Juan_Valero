@@ -425,19 +425,18 @@ La integridad verifica que los datos no hayan sido alterados*. Es asegurar que l
 
 ## 5. Problemas de no Separar Correctamente las Capas
 
-Imaginemos que todo tu código mezclado en un único archivo gigante. Suena caótico, verdad? Eso es lo que pasa cuando no separas las capas.
-
+Si el código mezclado en un único archivo gigante es caótico.
 **Las capas son:**
 - Controlador: Recibe solicitudes del cliente
 - Servicio: Aplica las reglas de negocio
 - Repositorio: Accede a la base de datos
 - Modelo: Representa los datos
 
-Si las mezclas, empiezan los problemas.
+Si se mezclan, empiezan los problemas.
 
 **Dificultad de mantener el código:** Cambiar algo en la base de datos afecta todo. Un error pequeño se propaga por todas partes. Es como editar un laberinto mientras navegas en él.
 
-**Imposible hacer pruebas:** Para probar si el servicio funciona bien, terminás necesitando la base de datos, el controlador y el cliente todo junto. Imposible testear cosas de forma aislada. Gastarás horas configurando pruebas complicadas.
+**Imposible hacer pruebas:** Para probar si el servicio funciona bien, termina necesitando la base de datos, el controlador y el cliente todo junto. Imposible testear cosas de forma aislada. Gastarás horas configurando pruebas complicadas.
 
 **Reutilización imposible:** Quieres usar la misma lógica de negocio en otro proyecto? Imposible, está toda mezclada con código específico de base de datos y controladores. Tenés que copiar y pegar código duplicado.
 
@@ -449,7 +448,58 @@ Si las mezclas, empiezan los problemas.
 
 **Difícil para nuevos desarrolladores:** Alguien nuevo en el equipo no sabe por dónde empezar. Todo está revuelto. Para entender una funcionalidad debe leer código en 10 archivos interconectados.
 
-**Resumen:** Separar capas es invertir tiempo ahora para ahorrar mucho tiempo después. Es la diferencia entre un proyecto que crece fácil o uno que se vuelve un caos.
+---
+
+## 7. Diferencias entre Validador, Utilidad y Servicio
+
+**Validador:** Es una clase especializada en verificar datos. Su único trabajo es responder "esto es válido o no". Por ejemplo, validar que un email tiene formato correcto, o que una cantidad es positiva. Recibe datos y retorna true o false, o lanza una excepción.
+
+```java
+@Component
+public class PedidoValidator {
+    public void validarItemsPedido(List<ItemPedidoRequest> items) {
+        if (items == null || items.isEmpty()) {
+            throw new ValidationException("El pedido debe tener al menos un producto");
+        }
+    }
+}
+```
+
+**Utilidad:** Una clase con métodos auxiliares que reutilizas en muchos lugares. No accede a base de datos, solo hace cálculos o transformaciones simples. Por ejemplo, formatear fechas, calcular totales, convertir textos. Es más como una caja de herramientas.
+
+```java
+public class PedidoUtil {
+    public static BigDecimal calcularTotal(List<ItemPedido> items) {
+        return items.stream()
+            .map(item -> item.getPrecio().multiply(new BigDecimal(item.getCantidad())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+}
+```
+
+**Servicio:** Es donde va la lógica de negocio. Coordina todo: valida, accede a la base de datos, calcula, y ejecuta las reglas del negocio. Un servicio usa validadores y utilidades, pero es responsable de orquestar todo el flujo.
+
+```java
+@Service
+public class PedidoService {
+    public PedidoResponse crearPedido(CrearPedidoRequest request) {
+        // Valida
+        pedidoValidator.validarItemsPedido(request.getItems());
+        
+        // Accede a datos
+        Usuario usuario = usuarioRepository.findById(request.getUsuarioId());
+        
+        // Usa utilidades
+        BigDecimal total = PedidoUtil.calcularTotal(request.getItems());
+        
+        // Aplica lógica
+        Pedido pedido = new Pedido(usuario, request.getItems(), total);
+        return pedidoRepository.save(pedido);
+    }
+}
+```
+
+**En resumen:** El validador verifica que los datos sean correctos. La utilidad hace cosas simples y reutilizables. El servicio es el director de orquesta que usa a ambos para hacer funcionar el negocio.
 
 ---
 
