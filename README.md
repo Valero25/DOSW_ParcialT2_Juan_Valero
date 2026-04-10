@@ -121,11 +121,6 @@ Diseñe en Figma las pantallas necesarias para el flujo de:
 
 
 
-## 3. Diferencia entre Autenticación, Autorización e Integridad
-
-Estos tres conceptos son fundamentales en seguridad, pero cumplen funciones diferentes:
----
-
 ## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
 Por cada funcionalidad que van a realizar generen una rama feature y
 una vez esté completa mezcle sobre develop y borre su rama - si no está
@@ -432,6 +427,12 @@ Las validaciones de input son aquellas que verifican el formato y estructura cor
 - Precio debe ser decimal válido
 - UUID debe tener formato correcto (36 caracteres con guiones)
 ```
+
+
+## 3. Diferencia entre Autenticación, Autorización e Integridad
+
+Estos tres conceptos son fundamentales en seguridad, pero cumplen funciones diferentes:
+---
 #### **Validaciones de Negocio**
 
 ### **Autenticación: ¿Quién eres?**
