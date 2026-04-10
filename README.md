@@ -87,10 +87,10 @@ dentro de un proyecto de software?
 software usaría para manejar los estados del pedido y por qué?
 9. Genere el diagrama entidad-relación para el marco relacional de
 persistencia.
-10.Proponga 2 índices que mejoren el rendimiento de las consultas de
+10. Proponga 2 índices que mejoren el rendimiento de las consultas de
 ECIXPRESS y establezca con un criterio técnico el porque dan valor a la
 solución.
-11.Como parte de la solución, es fundamental definir un conjunto robusto de
+11. Como parte de la solución, es fundamental definir un conjunto robusto de
 pruebas que garantice la calidad y correcto funcionamiento de las
 funcionalidades expuestas en el sistema. Dado el enfoque de
 transparencia con el cliente, se requiere evidenciar cómo se desarrollaría
@@ -102,17 +102,38 @@ Refactor) en la implementación de esta funcionalidad.
 contemplando tanto escenarios exitosos como de error.
 ● Identifique las validaciones clave que deben ser cubiertas por las
 pruebas.
-12.Explique cómo las pruebas garantizan el cumplimiento de las reglas de
+Fases de TDD (Ciclo Red-Green-Refactor) 
+Red (Fallo): Escribes una prueba para un requisito específico (ej. "el pedido debe tener productos"). Como la funcionalidad aún no existe, la prueba falla.
+Green (Paso): Escribes el código mínimo necesario para que la prueba pase. No importa si no es elegante, solo que funcione.
+Refactor (Mejora): Limpias el código, eliminas duplicados y mejoras la estructura sin cambiar el comportamiento. La prueba debe seguir pasando. 
+2. Casos de Prueba Iniciales
+Debes definirlos antes de tocar el código de la lógica de negocio:
+Escenarios Exitosos (Happy Path):
+Creación estándar: Validar que, con datos válidos (cliente, productos, dirección), el sistema retorne un ID de pedido y estado "Pendiente".
+Cálculo de total: Verificar que el monto total del pedido sea la suma correcta de los precios de los productos.
+Escenarios de Error (Edge Cases):
+Carrito vacío: El sistema debe lanzar un error si se intenta solicitar un pedido sin productos.
+Stock insuficiente: Debe fallar si la cantidad solicitada de un producto supera la existencia actual.
+Usuario no autenticado: Debe denegar la creación si no hay un token o sesión válida.
+Datos incompletos: Validar error si falta la dirección de envío o el método de pago.
+3. Validaciones Clave
+Para que el sistema sea robusto, las pruebas deben cubrir:
+Integridad de Datos: Que los IDs de productos y usuarios existan en la base de datos.
+Reglas de Negocio: Que el cliente no tenga deudas vencidas o bloqueos (si aplica).
+Consistencia Financiera: Que el precio capturado al momento del pedido sea el vigente (evitar cambios de precio post-solicitud).
+Disponibilidad: Bloqueo temporal del stock (reserva) mientras se procesa la solicitud.
+
+12. Explique cómo las pruebas garantizan el cumplimiento de las reglas de
 negocio y la integridad del sistema.
-13.Nuestro cliente quiere automatizar el proceso del ciclo de vida de la
+13. Nuestro cliente quiere automatizar el proceso del ciclo de vida de la
 aplicación, sin embargo necesita entender cómo funciona, describa las
 etapas principales de un pipeline y en qué consiste cada una.
-14.¿Qué sucede si una prueba falla en el pipeline? ¿Debe permitirse el
+14. ¿Qué sucede si una prueba falla en el pipeline? ¿Debe permitirse el
 despliegue? Justifique
-15. Explique el concepto de logging en el manejo de errores:
+15.  Explique el concepto de logging en el manejo de errores:
 a. ¿Qué información debería registrarse?
 b. ¿Qué NO debería registrarse (por seguridad)?
-16. Como parte del MVP, el cliente requiere una validación visual del producto.
+16.  Como parte del MVP, el cliente requiere una validación visual del producto.
 Diseñe en Figma las pantallas necesarias para el flujo de:
 ● Registro de usuario
 ● Inicio de sesión
