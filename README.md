@@ -119,85 +119,6 @@ Diseñe en Figma las pantallas necesarias para el flujo de:
 ● Selección de productos y su detalle
 ● Creación del pedido
 
----
-
-## Solucion
-
-### 2. Diferencia entre Validaciones de Input y Validaciones de Negocio
-
-#### **Validaciones de Input**
-
-Las validaciones de input son aquellas que verifican el formato y estructura correcta de los datos que envía el cliente. Se enfoca en la integridad sintáctica de los datos, sin considerar las reglas del dominio del negocio.
-
-**Características:**
-- Se ejecutan en el primer punto de entrada de la solicitud
-- Validan propiedades técnicas del dato: tipo, longitud, patrón, formato
-- No requieren acceso a la lógica de negocio o base de datos
-- Son independientes del contexto de negocio
-- Generan error `400 Bad Request`
-
-**Ejemplos en ECIXPRESS:**
-```
-- Email con formato válido (debe contener @)
-- Contraseña con mínimo 8 caracteres
-- Cantidad debe ser número positivo > 0
-- Código QR debe contener solo alfanuméricos
-- Precio debe ser decimal válido
-- UUID debe tener formato correcto (36 caracteres con guiones)
-```
-#### **Validaciones de Negocio**
-
-Las validaciones de negocio son aquellas que verifican el cumplimiento de las reglas y políticas del dominio específico de la aplicación. Se enfoca en la integridad semántica y la consistencia del estado del sistema.
-
-**Características:**
-- Se ejecutan después de validar el input
-- Acceden a la base de datos y lógica empresarial
-- Consideran el contexto, estado actual y políticas del sistema
-- Requieren conocimiento del dominio
-- Generan errores `422 Unprocessable Entity` o `409 Conflict`
-
-**Ejemplos en ECIXPRESS:**
-```
-- El email no está registrado (validación de unicidad)
-- El usuario está activo (no suspendido)
-- El usuario NO tiene un pedido activo
-- El producto tiene stock disponible (cantidad > cantidadSolicitada)
-- Solo clientes pueden crear pedidos (no cafetería)
-- El pedido solo puede cancelarse en estado CREADO
-- La transición de estado es válida (CREADO → EN_PREPARACION → ENTREGADO)
-- El usuario propietario del pedido es quien solicita cancelarlo
-- El stock no se puede actualizar si el pedido está CANCELADO
-```
-
-
-#### **Comparativa: Input vs Negocio**
-
-**Validación de Input vs Validación de Negocio**
-
-Las validaciones de input se enfocan en la **sintaxis y formato** de los datos, estructurando la información que llega del cliente, mientras que las validaciones de negocio se centran en la **semántica y reglas** del dominio, garantizando la consistencia del sistema.
-
-En términos de **ubicación**, las validaciones de input se implementan a nivel de **Controlador/DTOs**, verificándose automáticamente sin acceso a la base de datos. Por el contrario, las validaciones de negocio residen en el **Servicio/Repositorio** y sí requieren acceso a la base de datos para consultar el estado actual del sistema.
-
-Las **herramientas** también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
-
-**Ejemplos prácticos:**
-- **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
-- **Input**: Validar que la cantidad es un número > 0 vs **Negocio**: Validar que hay cantidad disponible en stock
-
-
-#### **Impacto en la Calidad**
-
-**Sin separación adecuada:**
-- Lógica de negocio contaminada con validaciones técnicas
-- Difícil de testear
-- Inconsistencia en errores
-- Datos corruptos en BD
-
-**Con separación clara:**
-- Responsabilidades bien definidas
-- Código más mantenible
-- Errores consistentes y documentados
-- Fácil de testear cada nivel
 
 ---
 
@@ -481,3 +402,83 @@ README el link del despliegue.
 mvn clean install
 mvn spring-boot:run
 ```
+---
+
+## Solucion
+
+### 2. Diferencia entre Validaciones de Input y Validaciones de Negocio
+
+#### **Validaciones de Input**
+
+Las validaciones de input son aquellas que verifican el formato y estructura correcta de los datos que envía el cliente. Se enfoca en la integridad sintáctica de los datos, sin considerar las reglas del dominio del negocio.
+
+**Características:**
+- Se ejecutan en el primer punto de entrada de la solicitud
+- Validan propiedades técnicas del dato: tipo, longitud, patrón, formato
+- No requieren acceso a la lógica de negocio o base de datos
+- Son independientes del contexto de negocio
+- Generan error `400 Bad Request`
+
+**Ejemplos en ECIXPRESS:**
+```
+- Email con formato válido (debe contener @)
+- Contraseña con mínimo 8 caracteres
+- Cantidad debe ser número positivo > 0
+- Código QR debe contener solo alfanuméricos
+- Precio debe ser decimal válido
+- UUID debe tener formato correcto (36 caracteres con guiones)
+```
+#### **Validaciones de Negocio**
+
+Las validaciones de negocio son aquellas que verifican el cumplimiento de las reglas y políticas del dominio específico de la aplicación. Se enfoca en la integridad semántica y la consistencia del estado del sistema.
+
+**Características:**
+- Se ejecutan después de validar el input
+- Acceden a la base de datos y lógica empresarial
+- Consideran el contexto, estado actual y políticas del sistema
+- Requieren conocimiento del dominio
+- Generan errores `422 Unprocessable Entity` o `409 Conflict`
+
+**Ejemplos en ECIXPRESS:**
+```
+- El email no está registrado (validación de unicidad)
+- El usuario está activo (no suspendido)
+- El usuario NO tiene un pedido activo
+- El producto tiene stock disponible (cantidad > cantidadSolicitada)
+- Solo clientes pueden crear pedidos (no cafetería)
+- El pedido solo puede cancelarse en estado CREADO
+- La transición de estado es válida (CREADO → EN_PREPARACION → ENTREGADO)
+- El usuario propietario del pedido es quien solicita cancelarlo
+- El stock no se puede actualizar si el pedido está CANCELADO
+```
+
+
+#### **Comparativa: Input vs Negocio**
+
+**Validación de Input vs Validación de Negocio**
+
+Las validaciones de input se enfocan en la **sintaxis y formato** de los datos, estructurando la información que llega del cliente, mientras que las validaciones de negocio se centran en la **semántica y reglas** del dominio, garantizando la consistencia del sistema.
+
+En términos de **ubicación**, las validaciones de input se implementan a nivel de **Controlador/DTOs**, verificándose automáticamente sin acceso a la base de datos. Por el contrario, las validaciones de negocio residen en el **Servicio/Repositorio** y sí requieren acceso a la base de datos para consultar el estado actual del sistema.
+
+Las **herramientas** también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
+
+**Ejemplos prácticos:**
+- **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
+- **Input**: Validar que la cantidad es un número > 0 vs **Negocio**: Validar que hay cantidad disponible en stock
+
+
+#### **Impacto en la Calidad**
+
+**Sin separación adecuada:**
+- Lógica de negocio contaminada con validaciones técnicas
+- Difícil de testear
+- Inconsistencia en errores
+- Datos corruptos en BD
+
+**Con separación clara:**
+- Responsabilidades bien definidas
+- Código más mantenible
+- Errores consistentes y documentados
+- Fácil de testear cada nivel
+
