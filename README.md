@@ -102,13 +102,14 @@ Refactor) en la implementación de esta funcionalidad.
 contemplando tanto escenarios exitosos como de error.
 ● Identifique las validaciones clave que deben ser cubiertas por las
 pruebas.
-##desarollo
-  1. Fases de TDD (Ciclo Red-Green-Refactor) 
+
+## Desarollo
+Fases de TDD (Ciclo Red-Green-Refactor) 
 Red (Fallo): Escribes una prueba para un requisito específico (ej. "el pedido debe tener productos"). Como la funcionalidad aún no existe, la prueba falla.
 Green (Paso): Escribes el código mínimo necesario para que la prueba pase. No importa si no es elegante, solo que funcione.
 Refactor (Mejora): Limpias el código, eliminas duplicados y mejoras la estructura sin cambiar el comportamiento. La prueba debe seguir pasando.
 
-  2. Casos de Prueba Iniciales
+Casos de Prueba Iniciales
 Debes definirlos antes de tocar el código de la lógica de negocio:
 Escenarios Exitosos (Happy Path):
 Creación estándar: Validar que, con datos válidos (cliente, productos, dirección), el sistema retorne un ID de pedido y estado "Pendiente".
@@ -119,7 +120,7 @@ Stock insuficiente: Debe fallar si la cantidad solicitada de un producto supera 
 Usuario no autenticado: Debe denegar la creación si no hay un token o sesión válida.
 Datos incompletos: Validar error si falta la dirección de envío o el método de pago.
 
-3. Validaciones Clave
+Validaciones Clave
 Para que el sistema sea robusto, las pruebas deben cubrir:
 Integridad de Datos: Que los IDs de productos y usuarios existan en la base de datos.
 Reglas de Negocio: Que el cliente no tenga deudas vencidas o bloqueos (si aplica).
