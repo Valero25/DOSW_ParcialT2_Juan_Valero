@@ -180,12 +180,6 @@ En términos de **ubicación**, las validaciones de input se implementan a nivel
 
 Las **herramientas** también difieren: en validaciones de input se utilizan anotaciones como `@Valid`, `@Email`, `@Size`, etc., mientras que en validaciones de negocio se emplean queries y comparaciones lógicas personalizadas.
 
-Desde el punto de vista de **códigos HTTP**, las validaciones de input generan **400 Bad Request** cuando los datos no cumplen con el formato requerido, mientras que las validaciones de negocio generan **422 Unprocessable Entity** o **409 Conflict** cuando se viola una regla del dominio.
-
-El **contexto** también es diferente: en validaciones de input, el cliente desconoce las reglas de negocio, solo valida estructura. En validaciones de negocio, se requiere conocimiento profundo del contexto empresarial (por ejemplo, si un usuario ya tiene un pedido activo).
-
-Respecto a la **velocidad**, las validaciones de input son muy rápidas ya que no acceden a la base de datos, mientras que las validaciones de negocio son más lentas porque requieren consultas a la BD.
-
 **Ejemplos prácticos:**
 - **Input**: Validar que un email tiene formato válido (contiene @) vs **Negocio**: Validar que el email no está registrado
 - **Input**: Validar que la cantidad es un número > 0 vs **Negocio**: Validar que hay cantidad disponible en stock
