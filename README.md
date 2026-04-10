@@ -87,6 +87,9 @@ dentro de un proyecto de software?
 software usaría para manejar los estados del pedido y por qué?
 9. Genere el diagrama entidad-relación para el marco relacional de
 persistencia.
+
+![img.png](Punto9.png)
+
 10. Proponga 2 índices que mejoren el rendimiento de las consultas de
 ECIXPRESS y establezca con un criterio técnico el porque dan valor a la
 solución.
