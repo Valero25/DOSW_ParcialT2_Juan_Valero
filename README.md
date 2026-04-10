@@ -503,6 +503,81 @@ public class PedidoService {
 
 ---
 
+## 8. Diagrama de Clases y Patrón para Estados del Pedido
+
+**Modelos principales de ECIXPRESS:**
+
+Los modelos que necesitamos son:
+- Usuario: Con su id, nombre, email, contraseña y rol
+- Producto: Con id, nombre, descripción, precio, código QR y stock
+- Pedido: Con id, usuario, lista de productos, cantidades, estado y total
+- ItemPedido: Representa cada producto dentro de un pedido
+
+La relación es: Un Usuario crea muchos Pedidos, y cada Pedido contiene muchos ItemPedidos.
+
+**¿Qué patrón usar para los estados del pedido?**
+
+El mejor patrón es **State Pattern**. ¿Por qué? Porque un pedido tiene 4 estados diferentes (CREADO, EN_PREPARACION, ENTREGADO, CANCELADO) y cada estado permite acciones distintas.
+
+**En vez de hacer esto (lo malo):**
+```java
+if (pedido.getEstado().equals("CREADO")) {
+    // permite cambiar a EN_PREPARACION
+} else if (pedido.getEstado().equals("EN_PREPARACION")) {
+    // permite cambiar a ENTREGADO
+} else if (pedido.getEstado().equals("ENTREGADO")) {
+    // no permite cambios
+}
+```
+
+**Usamos State Pattern (lo bueno):**
+
+Cada estado es una clase que implementa sus propias reglas. El pedido solo delega al estado actual qué puede hacer.
+
+```java
+public interface EstadoPedido {
+    void cambiarAEnPreparacion(Pedido pedido);
+    void cambiarAEntregado(Pedido pedido);
+    void cancelar(Pedido pedido);
+}
+
+public class EstadoCreado implements EstadoPedido {
+    @Override
+    public void cambiarAEnPreparacion(Pedido pedido) {
+        pedido.setEstado(new EstadoEnPreparacion());
+    }
+    
+    @Override
+    public void cancelar(Pedido pedido) {
+        pedido.setEstado(new EstadoCancelado());
+    }
+}
+
+public class EstadoEnPreparacion implements EstadoPedido {
+    @Override
+    public void cambiarAEntregado(Pedido pedido) {
+        pedido.setEstado(new EstadoEntregado());
+    }
+}
+
+public class Pedido {
+    private EstadoPedido estado = new EstadoCreado();
+    
+    public void cambiarEstado() {
+        estado.cambiarAEnPreparacion(this);
+    }
+}
+```
+
+**Ventajas de usar State Pattern:**
+- Cada estado tiene su propia lógica en su propia clase
+- Fácil de agregar nuevos estados sin tocar el código existente
+- No hay gigantescos if-else anidados
+- Las reglas de negocio están claras y organizadas
+- Fácil de testear cada estado por separado
+
+---
+
 ## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
 Por cada funcionalidad que van a realizar generen una rama feature y
 una vez esté completa mezcle sobre develop y borre su rama - si no está
