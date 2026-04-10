@@ -365,7 +365,7 @@ Estos tres conceptos son fundamentales en seguridad, pero cumplen funciones dife
 
 ### **Autenticación: ¿Quién eres?**
 
-La autenticación verifica **quién eres tú**. Es como presentar tu documento de identidad. El sistema te pide credenciales (usuario y contraseña) para confirmar que eres quien dices ser.
+La autenticación verifica quién eres tú. Es como presentar tu documento de identidad. El sistema te pide credenciales (usuario y contraseña) para confirmar que eres quien dices ser.
 
 **En ECIXPRESS:**
 - Usuario ingresa: email y contraseña
@@ -384,13 +384,13 @@ public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
 ### **Autorización: ¿Qué puedes hacer?**
 
-La autorización verifica **qué tienes permiso de hacer**. Es como tener un carnet que te permite entrar a ciertos lugares. Una vez autenticado, el sistema verifica si tu rol te permite realizar esa acción.
+La autorización verifica qué tienes permiso de hacer. Es como tener un carnet que te permite entrar a ciertos lugares. Una vez autenticado, el sistema verifica si tu rol te permite realizar esa acción.
 
 **En ECIXPRESS:**
-- ✅ Cliente autenticado → Puede crear pedidos
-- ❌ Cliente autenticado → NO puede cambiar estado de pedidos (solo cafetería)
-- ✅ Cafetería autenticada → Puede cambiar estado
-- ❌ Cafetería autenticada → NO puede crear pedidos
+-  Cliente autenticado → Puede crear pedidos
+-  Cliente autenticado → NO puede cambiar estado de pedidos (solo cafetería)
+-  Cafetería autenticada → Puede cambiar estado
+-  Cafetería autenticada → NO puede crear pedidos
 
 ```java
 @PostMapping("/pedidos") 
@@ -409,7 +409,7 @@ public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable String id, @Re
 
 ### **Integridad: ¿Fue modificado?**
 
-La integridad verifica que **los datos no hayan sido alterados**. Es asegurar que lo que envías sea exactamente lo mismo que recibe el servidor, sin cambios en el camino.
+La integridad verifica que los datos no hayan sido alterados*. Es asegurar que lo que envías sea exactamente lo mismo que recibe el servidor, sin cambios en el camino.
 
 **Métodos comunes:**
 - **Hash/Checksum**: Calcular un código único del mensaje. Si alguien lo modifica, el hash cambia
@@ -421,31 +421,35 @@ La integridad verifica que **los datos no hayan sido alterados**. Es asegurar qu
 - El JWT tiene firma digital (no se puede modificar sin que se note)
 - El servidor verifica el JWT: si fue modificado, es rechazado
 
-```
-Cliente                           Servidor
-  │                                 │
-  ├─ Email + Contraseña (HTTPS)─→  │ Autenticación: ¿quién eres?
-  │                                 │
-  ├─ JWT Token ←─────────────────  │
-  │                                 │
-  ├─ Crear Pedido + JWT (HTTPS)─→  │ Integridad: ¿fue modificado el JWT?
-  │                                 │ Autorización: ¿tienes permiso?
-  │                                 │
-  └─ 201 Created ←───────────────  │
-```
+---
 
-### **Resumen Práctico**
+## 5. Problemas de no Separar Correctamente las Capas
 
-| Concepto | Pregunta | Ejemplo | Error |
-|----------|----------|---------|-------|
-| **Autenticación** | ¿Quién eres? | Usuario envía credenciales | 401 Unauthorized |
-| **Autorización** | ¿Qué permitido haces? | Verificar rol del usuario | 403 Forbidden |
-| **Integridad** | ¿Fue modificado? | Verificar firma del JWT | 401 Unauthorized (token inválido) |
+Imaginemos que todo tu código mezclado en un único archivo gigante. Suena caótico, verdad? Eso es lo que pasa cuando no separas las capas.
 
-**En orden de ejecución siempre es:**
-1. **Autenticación** → ¿Eres quién dices ser?
-2. **Integridad** → ¿Los datos no fueron modificados?
-3. **Autorización** → ¿Tienes permiso para esto?
+**Las capas son:**
+- Controlador: Recibe solicitudes del cliente
+- Servicio: Aplica las reglas de negocio
+- Repositorio: Accede a la base de datos
+- Modelo: Representa los datos
+
+Si las mezclas, empiezan los problemas.
+
+**Dificultad de mantener el código:** Cambiar algo en la base de datos afecta todo. Un error pequeño se propaga por todas partes. Es como editar un laberinto mientras navegas en él.
+
+**Imposible hacer pruebas:** Para probar si el servicio funciona bien, terminás necesitando la base de datos, el controlador y el cliente todo junto. Imposible testear cosas de forma aislada. Gastarás horas configurando pruebas complicadas.
+
+**Reutilización imposible:** Quieres usar la misma lógica de negocio en otro proyecto? Imposible, está toda mezclada con código específico de base de datos y controladores. Tenés que copiar y pegar código duplicado.
+
+**Escalabilidad comprometida:** Cuando crece el proyecto, todo se vuelve más lento de arreglar. Agregar una simple funcionalidad toma el doble de tiempo porque todo está conectado como un nudo.
+
+**Duplicación de código:** Sin separación clara, terminas escribiendo la misma validación en 5 lugares diferentes. Cambiar algo significa buscar y editar en 5 lugares.
+
+**Seguridad comprometida:** Lógica de seguridad mezclada con lógica de negocio es peligroso. Fácilmente alguien olvida aplicar una validación en un lugar, dejando un agujero de seguridad.
+
+**Difícil para nuevos desarrolladores:** Alguien nuevo en el equipo no sabe por dónde empezar. Todo está revuelto. Para entender una funcionalidad debe leer código en 10 archivos interconectados.
+
+**Resumen:** Separar capas es invertir tiempo ahora para ahorrar mucho tiempo después. Es la diferencia entre un proyecto que crece fácil o uno que se vuelve un caos.
 
 ---
 
