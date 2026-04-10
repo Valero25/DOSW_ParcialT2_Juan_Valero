@@ -118,7 +118,8 @@ Diseñe en Figma las pantallas necesarias para el flujo de:
 ● Inicio de sesión
 ● Selección de productos y su detalle
 ● Creación del pedido
-ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
+
+## ACTIVIDADES A DESARROLLAR - PARTE PRÁCTICA:
 Por cada funcionalidad que van a realizar generen una rama feature y
 una vez esté completa mezcle sobre develop y borre su rama - si no está
 sobre develop no se calificara el entregable práctico.
