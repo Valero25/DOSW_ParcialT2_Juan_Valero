@@ -152,7 +152,8 @@ README el link del despliegue.
 
 ---
 
-## Especificación de Funcionalidades
+## Solución
+#1
 
 ### Funcionalidades Identificadas - Análisis de Requisitos REST API
 
