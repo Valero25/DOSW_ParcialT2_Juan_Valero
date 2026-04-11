@@ -107,6 +107,17 @@ negocio y la integridad del sistema.
 13.Nuestro cliente quiere automatizar el proceso del ciclo de vida de la
 aplicación, sin embargo necesita entender cómo funciona, describa las
 etapas principales de un pipeline y en qué consiste cada una.
+
+Un pipeline de CI/CD es basicamente una cadena automatizada que lleva el codigo desde que se sube al repositorio hasta que llega a produccion sin que el equipo tenga que hacerlo todo manualmente
+Primero esta la etapa de Source que es cuando el pipeline se activa Esto ocurre por ejemplo cuando se hace un merge de una rama feature a develop en ECIXPRESS Ese evento es el que enciende todo el proceso
+Despues viene Build donde se construye el proyecto y se descargan dependencias En un proyecto Spring Boot seria algo como mvn clean package Si hay errores de compilacion el proceso se detiene ahi mismo y se avisa al equipo porque no tiene sentido seguir si el codigo ni siquiera compila
+Luego esta la etapa de Test donde se ejecutan automaticamente las pruebas unitarias y de integracion Aqui es donde se valida que las reglas de negocio funcionen correctamente por ejemplo que el stock se descuente bien o que no se permita mas de un pedido activo Si algo falla el pipeline se corta y no se despliega nada
+Despues viene Code Analysis donde se revisa la calidad del codigo con herramientas como SonarQube o JaCoCo Esto no busca errores de funcionamiento sino problemas como codigo duplicado malas practicas o baja cobertura de pruebas
+Luego esta Package donde se genera el artefacto final que se va a desplegar por ejemplo un archivo jar o una imagen Docker La idea es que lo que se despliega sea exactamente lo mismo que paso por las pruebas sin cambios intermedios
+Despues viene Deploy que es cuando ese artefacto se envia al ambiente destino como staging o produccion En algunos casos es automatico y en otros requiere aprobacion dependiendo del nivel de riesgo
+Por ultimo esta Monitor donde se revisa como esta funcionando la aplicacion ya en produccion Se observan logs errores y rendimiento y si algo falla se puede incluso volver a una version anterior
+En ECIXPRESS usando GitHub Actions el flujo seria algo como merge a develop luego build despues tests con Jacoco luego analisis estatico despues se empaqueta el jar y finalmente se despliega en Azure
+*
 14.¿Qué sucede si una prueba falla en el pipeline? ¿Debe permitirse el
 despliegue? Justifique
 15. Explique el concepto de logging en el manejo de errores:
