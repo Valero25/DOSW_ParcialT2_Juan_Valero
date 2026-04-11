@@ -80,7 +80,7 @@ negocio
 3. Explique la diferencia entre autenticación, autorización e integridad.
 4. Genere el diagrama de componentes general del sistema ECIXPRESS
 
-![Diagrama en blanco - Página 2.png](docs/images/Diagrama%20en%20blanco%20-%20P%C3%A1gina%202.png)
+![Punto4Correcion.png](docs/images/Punto4Correcion.png)
 
 5. ¿Qué problemas pueden surgir si no se separan correctamente las capas
 dentro de un proyecto de software?
