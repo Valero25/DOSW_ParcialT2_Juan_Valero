@@ -109,6 +109,14 @@ aplicación, sin embargo necesita entender cómo funciona, describa las
 etapas principales de un pipeline y en qué consiste cada una.
 14.¿Qué sucede si una prueba falla en el pipeline? ¿Debe permitirse el
 despliegue? Justifique
+
+Cuando una prueba falla en el pipeline no deberia permitirse el despliegue En ese punto el proceso se detiene porque significa que algo no esta funcionando como se esperaba ya sea una regla de negocio una validacion o un comportamiento del sistema
+Desplegar con pruebas fallidas implicaria llevar a produccion un error conocido lo cual puede generar inconsistencias en la base de datos o comportamientos incorrectos que luego son dificiles de corregir
+Lo correcto es que el pipeline se detenga en la etapa de testing se notifique al equipo y no se continue con el build ni el deploy hasta que el problema este solucionado De esa forma se evita que codigo defectuoso llegue a produccion
+Ademas mantener esta regla ayuda a darle valor real a las pruebas Si se empieza a desplegar aun cuando fallan se pierde confianza en el sistema de testing y este deja de ser util como mecanismo de control
+La unica excepcion razonable es cuando la prueba esta mal disenada o es incorrecta En ese caso no se ignora el fallo sino que se corrige la prueba y se vuelve a ejecutar el pipeline
+En general una prueba fallida es una senal clara de que algo debe revisarse antes de avanzar no algo que se deba saltar
+
 15. Explique el concepto de logging en el manejo de errores:
 a. ¿Qué información debería registrarse?
 b. ¿Qué NO debería registrarse (por seguridad)?
