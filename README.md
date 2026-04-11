@@ -87,10 +87,10 @@ dentro de un proyecto de software?
 software usaría para manejar los estados del pedido y por qué?
 9. Genere el diagrama entidad-relación para el marco relacional de
 persistencia.
-10.Proponga 2 índices que mejoren el rendimiento de las consultas de
+10. Proponga 2 índices que mejoren el rendimiento de las consultas de
 ECIXPRESS y establezca con un criterio técnico el porque dan valor a la
 solución.
-11.Como parte de la solución, es fundamental definir un conjunto robusto de
+11. Como parte de la solución, es fundamental definir un conjunto robusto de
 pruebas que garantice la calidad y correcto funcionamiento de las
 funcionalidades expuestas en el sistema. Dado el enfoque de
 transparencia con el cliente, se requiere evidenciar cómo se desarrollaría
@@ -102,12 +102,12 @@ Refactor) en la implementación de esta funcionalidad.
 contemplando tanto escenarios exitosos como de error.
 ● Identifique las validaciones clave que deben ser cubiertas por las
 pruebas.
-12.Explique cómo las pruebas garantizan el cumplimiento de las reglas de
+12. Explique cómo las pruebas garantizan el cumplimiento de las reglas de
 negocio y la integridad del sistema.
-13.Nuestro cliente quiere automatizar el proceso del ciclo de vida de la
+13. Nuestro cliente quiere automatizar el proceso del ciclo de vida de la
 aplicación, sin embargo necesita entender cómo funciona, describa las
 etapas principales de un pipeline y en qué consiste cada una.
-14.¿Qué sucede si una prueba falla en el pipeline? ¿Debe permitirse el
+14. ¿Qué sucede si una prueba falla en el pipeline? ¿Debe permitirse el
 despliegue? Justifique
 15. Explique el concepto de logging en el manejo de errores:
 a. ¿Qué información debería registrarse?
@@ -520,8 +520,10 @@ Otro problema es que se empieza a repetir codigo porqu como no hay un lugar defi
 Ademas el sistema se vuelve mas dificil de mejorar o escalar Si despues se quiere cambiar la base de datos usar otra tecnologia o agregar nuevas funciones toca modificar muchas cosas porque todo esta mezvlado
 Igualmente puede haber problemas de seguridad ya que al no estar bien organizado el codigo es mas facil cometer errores en validaciones o mostrar informacion que no deberia
 Por ejemplo en ECIXPRESS si el controlador de crear pedido hace todo al mismo tiempo validar stock descontar inventario y crear el pedido despues cuando haya que cambiar una regla del negocio tocaria revisar todo ese codigo mezclado en vez de solo modificar una parte especifica
+### 6 Genere el diagrama de componentes específicos del sistema ECIXPRESS
+<img width="11780" height="9940" alt="Diagrama en blanco - Página 2" src="https://github.com/user-attachments/assets/986a27d1-e2c9-4d8f-9229-fd0da1cfcf00" />
 
-###7. Diferencias entre Validador, Utilidad y Servicio
+### 7. Diferencias entre Validador, Utilidad y Servicio
 Validador: Es una clase especializada en verificar datos. Su único trabajo es responder "esto es válido o no". Por ejemplo, validar que un email tiene formato correcto, o que una cantidad es positiva. Recibe datos y retorna true o false, o lanza una excepción.
 
 Utilidad: Una clase con métodos auxiliares que reutilizas en muchos lugares. No accede a base de datos, solo hace cálculos o transformaciones simples. Por ejemplo, formatear fechas, calcular totales, convertir textos. Es más como una caja de herramientas.
@@ -584,11 +586,133 @@ Criterio técnico por el que generan valor:
 Ambos índices reducen el tiempo de búsqueda de O(n) a O(log n), donde n es el número de filas. Si tienes 100,000 pedidos, sin índice necesitas leer hasta 100,000 filas. Con índice, solo lees aproximadamente 17 filas. Eso es una diferencia enormemente en velocidad.
 
 Además, estos índices alinean con los patrones de uso real de ECIXPRESS: búsquedas frecuentes por usuario/estado en pedidos e búsquedas por código QR en productos.
-## 11
+### 8 
+**Modelos principales de ECIXPRESS:**
+Los modelos que necesitamos son:
+- Usuario: Con su id, nombre, email, contraseña y rol
+- Producto: Con id, nombre, descripción, precio, código QR y stock
+- Pedido: Con id, usuario, lista de productos, cantidades, estado y total
+- ItemPedido: Representa cada producto dentro de un pedido
+
+La relación es: Un Usuario crea muchos Pedidos, y cada Pedido contiene muchos ItemPedidos.
+
+**¿Qué patrón usar para los estados del pedido?**
+
+El mejor patrón es **State Pattern**. ¿Por qué? Porque un pedido tiene 4 estados diferentes (CREADO, EN_PREPARACION, ENTREGADO, CANCELADO) y cada estado permite acciones distintas.
+
+**En vez de hacer esto (lo malo):**
+```java
+if (pedido.getEstado().equals("CREADO")) {
+    // permite cambiar a EN_PREPARACION
+} else if (pedido.getEstado().equals("EN_PREPARACION")) {
+    // permite cambiar a ENTREGADO
+} else if (pedido.getEstado().equals("ENTREGADO")) {
+    // no permite cambios
+}
+```
+
+**Usamos State Pattern (lo bueno):**
+
+Cada estado es una clase que implementa sus propias reglas. El pedido solo delega al estado actual qué puede hacer.
+
+
+**Ventajas de usar State Pattern:**
+- Cada estado tiene su propia lógica en su propia clase
+- Fácil de agregar nuevos estados sin tocar el código existente
+- No hay gigantescos if-else anidados
+- Las reglas de negocio están claras y organizadas
+- Fácil de testear cada estado por separado
+
+---
+### 9 Genere el diagrama entidad-relación para el marco relacional de persistencia.
+
+![img.png](Punto9.png)
+
+### 10 Proponga 2 índices que mejoren el rendimiento de las consultas de ECIXPRESS y establezca con un criterio técnico el porque dan valor a la solución.
+
+**Índice 1: En la tabla Pedido por usuario y estado**
+
+```sql
+CREATE INDEX idx_pedido_usuario_estado ON pedido(usuario_id, estado);
+```
+
+¿Por qué funciona? Cuando buscas "dame todos los pedidos de un usuario" o "dame los pedidos en estado CREADO de este usuario", la base de datos busca en este índice en lugar de recorrer todas las filas de la tabla. Es como buscar por apellido en una guía telefónica ordenada: mucho más rápido que leer página por página.
+
+En ECIXPRESS necesitamos esto constantemente: ver los pedidos de un usuario, verificar si tiene pedido activo, cambiar estado de pedidos específicos. Sin el índice, la base de datos debe leer toda la tabla.
+
+**Índice 2: En la tabla Producto por código QR**
+
+```sql
+CREATE INDEX idx_producto_codigo_qr ON producto(codigo_qr);
+```
+
+¿Por qué funciona? Cada vez que un cliente escanea un código QR para buscar un producto, la base de datos necesita encontrar ese producto específico. Sin índice, busca en todas las filas. Con índice, lo encuentra directamente.
+
+Esto es crítico en ECIXPRESS porque los clientes están escaneando constantemente QR mientras hacen compras. Si cada escaneo requiere leer toda la tabla, el sistema se vuelve lento. Con el índice, es instantáneo.
+
+**Criterio técnico por el que generan valor:**
+
+Ambos índices reducen el tiempo de búsqueda de O(n) a O(log n), donde n es el número de filas. Si tienes 100,000 pedidos, sin índice necesitas leer hasta 100,000 filas. Con índice, solo lees aproximadamente 17 filas. Eso es una diferencia enormemente en velocidad.
+
+Además, estos índices alinean con los patrones de uso real de ECIXPRESS: búsquedas frecuentes por usuario/estado en pedidos e búsquedas por código QR en productos.
+
+---
+
+### 11
 Desarollo
 Fases de TDD (Ciclo Red-Green-Refactor) Red (Fallo): Escribes una prueba para un requisito específico (ej. "el pedido debe tener productos"). Como la funcionalidad aún no existe, la prueba falla. Green (Paso): Escribes el código mínimo necesario para que la prueba pase. No importa si no es elegante, solo que funcione. Refactor (Mejora): Limpias el código, eliminas duplicados y mejoras la estructura sin cambiar el comportamiento. La prueba debe seguir pasando.
 
 Casos de Prueba Iniciales Debes definirlos antes de tocar el código de la lógica de negocio: Escenarios Exitosos (Happy Path): Creación estándar: Validar que, con datos válidos (cliente, productos, dirección), el sistema retorne un ID de pedido y estado "Pendiente". Cálculo de total: Verificar que el monto total del pedido sea la suma correcta de los precios de los productos. Escenarios de Error (Edge Cases): Carrito vacío: El sistema debe lanzar un error si se intenta solicitar un pedido sin productos. Stock insuficiente: Debe fallar si la cantidad solicitada de un producto supera la existencia actual. Usuario no autenticado: Debe denegar la creación si no hay un token o sesión válida. Datos incompletos: Validar error si falta la dirección de envío o el método de pago.
 
 Validaciones Clave Para que el sistema sea robusto, las pruebas deben cubrir: Integridad de Datos: Que los IDs de productos y usuarios existan en la base de datos. Reglas de Negocio: Que el cliente no tenga deudas vencidas o bloqueos (si aplica). Consistencia Financiera: Que el precio capturado al momento del pedido sea el vigente (evitar cambios de precio post-solicitud). Disponibilidad: Bloqueo temporal del stock (reserva) mientras se procesa la solicitud.
-<img width="1206" height="206" alt="image" src="https://github.com/user-attachments/assets/4531c48d-3da3-4d5f-b797-6422ab735a3f" />
+
+### 12
+Las pruebas ayudan a asegurar que las reglas del negocio se cumplan y que el sistema funcione correctamente de forma confiable
+Primero permiten verificar que las reglas esten bien implementadas en el codigo es decir cada regla importante se convierte en una prueba Por ejemplo si en ECIXPRESS un usuario solo puede tener un pedido activo se puede hacer una prueba que intente crear un segundo pedido y comprobar que el sistema lo rechaza Si alguien cambia el codigo y rompe esa regla la prueba falla de inmediato
+Tambien ayudan a evitar errores cuando el sistema crece Cuando se agrega una nueva funcionalidad las pruebas anteriores aseguran que lo que ya funcionaba siga igual Por ejemplo si al implementar confirmar pedido se rompe sin querer la validacion de stock las pruebas lo detectan antes de que llegue a produccion
+Otro punto importante es que validan los cambios de estado dentro del sistema En un pedido por ejemplo no todas las transiciones son validas como pasar de entregado a cancelado Las pruebas se encargan de comprobar que el sistema respete esas reglas
+Por ultimo las pruebas de integracion ayudan a asegurar que los datos se mantengan consistentes Por ejemplo que al confirmar un pedido realmente se descuente el stock en la base de datos y no quede nada a medias si ocurre un error
+En pocas palabras las reglas de negocio sin pruebas dependen de que alguien las recuerde Con pruebas quedan automatizadas y se verifican cada vez que el sistema cambia
+
+### 13
+
+Un pipeline de CI/CD es basicamente una cadena automatizada que lleva el codigo desde que se sube al repositorio hasta que llega a produccion sin que el equipo tenga que hacerlo todo manualmente
+Primero esta la etapa de Source que es cuando el pipeline se activa Esto ocurre por ejemplo cuando se hace un merge de una rama feature a develop en ECIXPRESS Ese evento es el que enciende todo el proceso
+Despues viene Build donde se construye el proyecto y se descargan dependencias En un proyecto Spring Boot seria algo como mvn clean package Si hay errores de compilacion el proceso se detiene ahi mismo y se avisa al equipo porque no tiene sentido seguir si el codigo ni siquiera compila
+Luego esta la etapa de Test donde se ejecutan automaticamente las pruebas unitarias y de integracion Aqui es donde se valida que las reglas de negocio funcionen correctamente por ejemplo que el stock se descuente bien o que no se permita mas de un pedido activo Si algo falla el pipeline se corta y no se despliega nada
+Despues viene Code Analysis donde se revisa la calidad del codigo con herramientas como SonarQube o JaCoCo Esto no busca errores de funcionamiento sino problemas como codigo duplicado malas practicas o baja cobertura de pruebas
+Luego esta Package donde se genera el artefacto final que se va a desplegar por ejemplo un archivo jar o una imagen Docker La idea es que lo que se despliega sea exactamente lo mismo que paso por las pruebas sin cambios intermedios
+Despues viene Deploy que es cuando ese artefacto se envia al ambiente destino como staging o produccion En algunos casos es automatico y en otros requiere aprobacion dependiendo del nivel de riesgo
+Por ultimo esta Monitor donde se revisa como esta funcionando la aplicacion ya en produccion Se observan logs errores y rendimiento y si algo falla se puede incluso volver a una version anterior
+En ECIXPRESS usando GitHub Actions el flujo seria algo como merge a develop luego build despues tests con Jacoco luego analisis estatico despues se empaqueta el jar y finalmente se despliega en Azure
+*
+### 14
+Cuando una prueba falla en el pipeline no deberia permitirse el despliegue En ese punto el proceso se detiene porque significa que algo no esta funcionando como se esperaba ya sea una regla de negocio una validacion o un comportamiento del sistema
+Desplegar con pruebas fallidas implicaria llevar a produccion un error conocido lo cual puede generar inconsistencias en la base de datos o comportamientos incorrectos que luego son dificiles de corregir
+Lo correcto es que el pipeline se detenga en la etapa de testing se notifique al equipo y no se continue con el build ni el deploy hasta que el problema este solucionado De esa forma se evita que codigo defectuoso llegue a produccion
+Ademas mantener esta regla ayuda a darle valor real a las pruebas Si se empieza a desplegar aun cuando fallan se pierde confianza en el sistema de testing y este deja de ser util como mecanismo de control
+La unica excepcion razonable es cuando la prueba esta mal disenada o es incorrecta En ese caso no se ignora el fallo sino que se corrige la prueba y se vuelve a ejecutar el pipeline
+En general una prueba fallida es una senal clara de que algo debe revisarse antes de avanzar no algo que se deba saltar
+
+### 15 
+a. Qué si debería registrarse
+Timestamp exacto del evento — para reconstruir la secuencia de lo que ocurrió.
+Nivel de severidad 
+INFO para operaciones normales, WARN para situaciones inesperadas no críticas, ERROR para fallos que afectan la operación, DEBUG para trazas de desarrollo.
+Identificador de la operación o request: un requestId único que permita rastrear todo el flujo de una petición de principio a fin.
+Qué operación se ejecutó: por ejemplo "creación de pedido iniciada", "validación de stock fallida", "pedido cancelado exitosamente".
+El error técnico completo: mensaje de excepción y stack trace cuando aplique, para poder diagnosticar la causa raíz.
+El rol o tipo de usuario que ejecutó la acción: sin identificar a la persona, solo el rol (CLIENTE, CAFETERIA).
+Códigos HTTP de respuesta: especialmente los 4xx y 5xx para detectar patrones de error.
+b. Qué no debería registrarse
+Contraseñas: ni en texto plano ni encriptadas. Nunca.
+Tokens JWT completos: si un log es comprometido, el atacante tendría acceso válido al sistema.
+Datos personales sensibles: número de documento, dirección, información financiera.
+Números de tarjeta o datos de pago: aunque ECIXPRESS no los maneja hoy, es una regla universal.
+Respuestas completas de autenticación: el payload del login response no debe aparecer en logs.
+Datos de otros usuarios: un log del pedido de un cliente no debe contener información de otros clientes.
+En ECIXPRESS concretamente el GlobalExceptionHandler debería registrar el tipo de error, el endpoint que lo generó y el timestamp — pero nunca el cuerpo completo del request si contiene credenciales, ni el token del header Authorization.
+### 16
+https://www.figma.com/design/FrX0Uj45OSYrqV8NlFHneS/Parcial?node-id=0-1&t=HQL3nb6tmiyoBXgY-1
+<img width="1561" height="1312" alt="image" src="https://github.com/user-attachments/assets/ffdb95ea-478f-4e67-bdbf-15d401e415b6" />
+
