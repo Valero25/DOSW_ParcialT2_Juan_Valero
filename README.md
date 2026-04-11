@@ -508,9 +508,19 @@ Cliente                           Servidor
 
 ### Genere el diagrama de componentes general del sistema ECIXPRESS
 
-![img.png](doc/imagen/img.png)
+<img width="921" height="167" alt="image" src="https://github.com/user-attachments/assets/b60d5d0e-f50c-4b3f-871f-c3952bfb84ee" />
 
-7. Diferencias entre Validador, Utilidad y Servicio
+
+###5
+Si en un proyecto de software no se separan bien las capas pueden surgir varios problemas que hace mas dificil el desarrollo
+Primero el codigo queda muy conectado entre si o sea todo depende de todo entonces si cambia algo en la base de datos o en una parte del sistema puede terminar afectando otras partes que no deberian verse involucradas
+Tambien se vuelve dificil hacer pruebas porque la logica no esta separada y no se puede probar cada parte individualmente Muchas veces toca probar todo junto lo cual hace mas complicado encontrar errores
+Otro problema es que se empieza a repetir codigo porqu como no hay un lugar definido para la logica de negocio muchas validaciones terminan copiadas en varios controladores o metodos diferentes
+Ademas el sistema se vuelve mas dificil de mejorar o escalar Si despues se quiere cambiar la base de datos usar otra tecnologia o agregar nuevas funciones toca modificar muchas cosas porque todo esta mezvlado
+Igualmente puede haber problemas de seguridad ya que al no estar bien organizado el codigo es mas facil cometer errores en validaciones o mostrar informacion que no deberia
+Por ejemplo en ECIXPRESS si el controlador de crear pedido hace todo al mismo tiempo validar stock descontar inventario y crear el pedido despues cuando haya que cambiar una regla del negocio tocaria revisar todo ese codigo mezclado en vez de solo modificar una parte especifica
+
+###7. Diferencias entre Validador, Utilidad y Servicio
 Validador: Es una clase especializada en verificar datos. Su único trabajo es responder "esto es válido o no". Por ejemplo, validar que un email tiene formato correcto, o que una cantidad es positiva. Recibe datos y retorna true o false, o lanza una excepción.
 
 Utilidad: Una clase con métodos auxiliares que reutilizas en muchos lugares. No accede a base de datos, solo hace cálculos o transformaciones simples. Por ejemplo, formatear fechas, calcular totales, convertir textos. Es más como una caja de herramientas.
