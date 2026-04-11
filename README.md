@@ -104,6 +104,15 @@ contemplando tanto escenarios exitosos como de error.
 pruebas.
 12.Explique cómo las pruebas garantizan el cumplimiento de las reglas de
 negocio y la integridad del sistema.
+
+Las pruebas ayudan a asegurar que las reglas del negocio se cumplan y que el sistema funcione correctamente de forma confiable
+Primero permiten verificar que las reglas esten bien implementadas en el codigo es decir cada regla importante se convierte en una prueba Por ejemplo si en ECIXPRESS un usuario solo puede tener un pedido activo se puede hacer una prueba que intente crear un segundo pedido y comprobar que el sistema lo rechaza Si alguien cambia el codigo y rompe esa regla la prueba falla de inmediato
+Tambien ayudan a evitar errores cuando el sistema crece Cuando se agrega una nueva funcionalidad las pruebas anteriores aseguran que lo que ya funcionaba siga igual Por ejemplo si al implementar confirmar pedido se rompe sin querer la validacion de stock las pruebas lo detectan antes de que llegue a produccion
+Otro punto importante es que validan los cambios de estado dentro del sistema En un pedido por ejemplo no todas las transiciones son validas como pasar de entregado a cancelado Las pruebas se encargan de comprobar que el sistema respete esas reglas
+Por ultimo las pruebas de integracion ayudan a asegurar que los datos se mantengan consistentes Por ejemplo que al confirmar un pedido realmente se descuente el stock en la base de datos y no quede nada a medias si ocurre un error
+En pocas palabras las reglas de negocio sin pruebas dependen de que alguien las recuerde Con pruebas quedan automatizadas y se verifican cada vez que el sistema cambia
+
+
 13.Nuestro cliente quiere automatizar el proceso del ciclo de vida de la
 aplicación, sin embargo necesita entender cómo funciona, describa las
 etapas principales de un pipeline y en qué consiste cada una.
