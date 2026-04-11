@@ -402,6 +402,18 @@ README el link del despliegue.
 mvn clean install
 mvn spring-boot:run
 ```
+
+### Documentación Swagger / OpenAPI
+Una vez levantada la aplicación, la documentación interactiva queda disponible en:
+
+- `http://localhost:8080/api/swagger-ui.html`
+- `http://localhost:8080/api/v3/api-docs`
+
+La configuración incluye:
+- Metadatos del proyecto ECIXPRESS.
+- Esquema de seguridad JWT (`bearerAuth`) para endpoints protegidos.
+- Agrupación automática de endpoints bajo `ecixpress-api`.
+- Endpoint documentado de verificación: `GET /api/health`.
 ---
 
 ## Solucion
