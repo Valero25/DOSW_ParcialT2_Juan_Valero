@@ -511,7 +511,8 @@ Cliente                           Servidor
 <img width="921" height="167" alt="image" src="https://github.com/user-attachments/assets/b60d5d0e-f50c-4b3f-871f-c3952bfb84ee" />
 
 
-###5
+### 5
+
 Si en un proyecto de software no se separan bien las capas pueden surgir varios problemas que hace mas dificil el desarrollo
 Primero el codigo queda muy conectado entre si o sea todo depende de todo entonces si cambia algo en la base de datos o en una parte del sistema puede terminar afectando otras partes que no deberian verse involucradas
 Tambien se vuelve dificil hacer pruebas porque la logica no esta separada y no se puede probar cada parte individualmente Muchas veces toca probar todo junto lo cual hace mas complicado encontrar errores
