@@ -81,6 +81,15 @@ negocio
 4. Genere el diagrama de componentes general del sistema ECIXPRESS
 5. ¿Qué problemas pueden surgir si no se separan correctamente las capas
 dentro de un proyecto de software?
+
+Si en un proyecto de software no se separan bien las capas pueden surgir varios problemas que hace mas dificil el desarrollo
+Primero el codigo queda muy conectado entre si o sea todo depende de todo entonces si cambia algo en la base de datos o en una parte del sistema puede terminar afectando otras partes que no deberian verse involucradas
+Tambien se vuelve dificil hacer pruebas porque la logica no esta separada y no se puede probar cada parte individualmente Muchas veces toca probar todo junto lo cual hace mas complicado encontrar errores
+Otro problema es que se empieza a repetir codigo porqu como no hay un lugar definido para la logica de negocio muchas validaciones terminan copiadas en varios controladores o metodos diferentes
+Ademas el sistema se vuelve mas dificil de mejorar o escalar Si despues se quiere cambiar la base de datos usar otra tecnologia o agregar nuevas funciones toca modificar muchas cosas porque todo esta mezvlado
+Igualmente puede haber problemas de seguridad ya que al no estar bien organizado el codigo es mas facil cometer errores en validaciones o mostrar informacion que no deberia
+Por ejemplo en ECIXPRESS si el controlador de crear pedido hace todo al mismo tiempo validar stock descontar inventario y crear el pedido despues cuando haya que cambiar una regla del negocio tocaria revisar todo ese codigo mezclado en vez de solo modificar una parte especifica
+
 6. Genere el diagrama de componentes específicos del sistema ECIXPRESS
 7. ¿Cuáles son las diferencias entre un validador, una utilidad y un servicio?
 8. Genere el diagrama de clases de los modelos y responda: ¿Qué patrón de
