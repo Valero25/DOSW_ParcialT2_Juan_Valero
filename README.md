@@ -626,7 +626,8 @@ Cada estado es una clase que implementa sus propias reglas. El pedido solo deleg
 ---
 ### 9 Genere el diagrama entidad-relación para el marco relacional de persistencia.
 
-![img.png](Punto9.png)
+<img width="1206" height="206" alt="image" src="https://github.com/user-attachments/assets/23606a13-5f62-433a-8236-92d6320857cb" />
+
 
 ### 10 Proponga 2 índices que mejoren el rendimiento de las consultas de ECIXPRESS y establezca con un criterio técnico el porque dan valor a la solución.
 
