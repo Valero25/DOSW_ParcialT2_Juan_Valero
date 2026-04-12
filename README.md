@@ -717,3 +717,8 @@ En ECIXPRESS concretamente el GlobalExceptionHandler debería registrar el tipo 
 https://www.figma.com/design/FrX0Uj45OSYrqV8NlFHneS/Parcial?node-id=0-1&t=HQL3nb6tmiyoBXgY-1
 <img width="1561" height="1312" alt="image" src="https://github.com/user-attachments/assets/ffdb95ea-478f-4e67-bdbf-15d401e415b6" />
 
+### PUNTOS PRACTICOS
+### 1
+Realizado
+### 2
+Realizado
